@@ -7,4 +7,4 @@ Calendars and related programs never offered the level of control and functional
 ## No Guarantees or Warranties
 ### The parties that use this program acknowledge that no guarantees (including guarantees of performance) or warranties of any kind, whether statutory, express, or implied (including fitness for a particular purpose) are provided with the program.
 ## Authors
-This original program is completely written by @Scolopoendria.
+This original program (tm2) is completely written by @Scolopendria.
