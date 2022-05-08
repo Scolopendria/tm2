@@ -15,7 +15,7 @@ class attributeContainer{
         std::string get(std::string identifier);
         attributeContainer* set(std::array<std::string, 2> ID_pair);
         attributeContainer* set(std::string identifier, std::string value); //Overload
-        attributeContainer* reset(std::vector<std::array<std::string, 2>> attributes); //necessary?
+        attributeContainer* set(std::vector<std::array<std::string, 2>> attributes);
         attributeContainer* deleteAttribute(std::string identifier);
 };
 
@@ -31,20 +31,21 @@ class node{
         std::string refresh();
         std::string getName();
         std::vector<node> getChildren();
-        node* forge(node nodeName);
-        node* forge(std::vector<node> childBranch);
-        node get(std::string nodeName);
-        bool check(std::string nodeName);
+        node* deleteChild(std::string childIdentifier);
+        node* forge(node child);
+        node* forge(std::string childData);
+        node* forge(std::vector<node> children);
+        node get(std::string childName);
+        bool check(std::string childIdentifier);
 };
 
 class megaString{
     private:
-        std::string filename{"tm2.txt"};
+        std::string filename{};
         std::string getFile(std::string filename);
         std::string strip(std::string data);
     public:
-        megaString();
-        megaString(std::string filename);
+        megaString(std::vector<std::string> commands);
         ~megaString();
         node child{"\"tm2\"{}"};
 };

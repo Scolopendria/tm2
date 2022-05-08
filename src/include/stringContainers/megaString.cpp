@@ -3,16 +3,17 @@
 
 #include "stringContainers.h"
 #include <string>
+#include <vector>
 #include <fstream>
 #include <sstream>
 
-megaString::megaString(){
-    megaString("tm2.txt");
-}
+megaString::megaString(std::vector<std::string> commands){
+    this->filename = commands[0];
+    commands.erase(commands.begin());
 
-megaString::megaString(const std::string filename){
-    this->filename = filename;
-    this->child = node{strip(getFile(this->filename))};
+    this->child = node{strip(getFile(filename))};
+
+    //commands()
 }
 
 megaString::~megaString(){
@@ -21,7 +22,7 @@ megaString::~megaString(){
     file.close();
 }
 
-std::string megaString::getFile(const std::string filename){
+std::string megaString::getFile(const std::string filename){ // utilities
     std::ifstream file(filename);
     if (!file.is_open()) return "\"tm2\"{}";
 
@@ -33,7 +34,8 @@ std::string megaString::getFile(const std::string filename){
     return "\"tm2\"{}";
 }
 
-std::string megaString::strip(const std::string data){
+std::string megaString::strip(const std::string data){// place in converters?? sub of validateFile
+    // does not guarantee objectify valid data
     int depth{};
     std::string str{};
     std::size_t i{};
@@ -57,15 +59,15 @@ std::string megaString::strip(const std::string data){
             break;
         case '}':
             str += data[i++];
-            if (--depth == 0) return str;
+            if (--depth < 1) return str;
             break;
         case '=':
             str += data[i++];
             break;
-        default: ;
+        default: i++;
         }
     }
-
+    //throwError("file overran")
     return str;
 }
 
