@@ -4,14 +4,14 @@
 #include "include/headers.h"
 
 int main(int argc, char **argv){
-    std::vector<std::string> commands{};
-    for (int i{}; i < argc; i++){
-        commands.push_back(argv[i]);
-    }
-    commands.erase(commands.begin());
-
-    megaString tm2{commands}; // can make lambda pass
+    megaString tm2{[argc, argv](){
+        std::vector<std::string> commands{};
+        for (int i{}; i < argc; i++){
+            commands.push_back(argv[i]);
+        }
+        commands.erase(commands.begin());
+        return commands;
+    }()};
     //tm2 = scheduler(tm2);
-    // something
     return 0;
 }

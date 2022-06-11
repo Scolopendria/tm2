@@ -1,6 +1,7 @@
 #ifndef STRINGCONTAINERS_H
 #define STRINGCONTAINERS_H
 
+#include "../headers.h"
 #include <string>
 #include <vector>
 #include <array>

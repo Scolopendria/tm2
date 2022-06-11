@@ -13,7 +13,7 @@ megaString::megaString(std::vector<std::string> commands){
 
     this->child = node{strip(getFile(filename))};
 
-    //commands()
+    //commands();
 }
 
 megaString::~megaString(){
