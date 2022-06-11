@@ -6,6 +6,10 @@
 #include <array>
 #include <vector>
 
+node::node(){
+    // do nothing
+}
+
 node::node(std::string data){
     this->data = data;
     objectify();

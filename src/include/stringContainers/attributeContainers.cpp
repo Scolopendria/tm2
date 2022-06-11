@@ -7,6 +7,7 @@
 #include <array>
 
 attributeContainer::attributeContainer(){
+    // do nothing
 }
 
 attributeContainer::attributeContainer(std::vector<std::array<std::string, 2>> attributes){

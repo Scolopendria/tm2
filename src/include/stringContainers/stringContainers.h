@@ -27,6 +27,7 @@ class node{
         std::vector<node> children{};
         node* objectify();
     public:
+        node();
         node(std::string data);
         attributeContainer attributes{};
         std::string refresh();
@@ -40,6 +41,18 @@ class node{
         bool check(std::string childIdentifier);
 };
 
+class metaContainer{
+    private:
+        int totalTime{};
+        std::string name{};
+        std::vector<metaContainer> children{};
+        attributeContainer attributes{};
+    public:
+        metaContainer(node data);
+        int getTotalTime();
+        std::string getName();
+};
+
 class megaString{
     private:
         std::string filename{};
@@ -48,11 +61,12 @@ class megaString{
     public:
         megaString(std::vector<std::string> commands);
         ~megaString();
-        node child{"\"tm2\"{}"};
+        node child{};
 };
 
 #include "megaString.cpp"
 #include "node.cpp"
 #include "attributeContainers.cpp"
+#include "metaContainers.cpp"
 
 #endif
