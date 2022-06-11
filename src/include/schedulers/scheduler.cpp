@@ -15,15 +15,14 @@ megaString scheduler(megaString tm2){
 }
 
 node schedule(node account){
-    bool scheduled{};
-    int autoStart{}, loopCount{};
     calTime cal{};
 
     for (int i{}; i < 14; i++){
         cal.init(i);
-        loopCount = 0;
-        
-        //auto item = containerize(account.get("Goals"));
+
+        bool scheduled{false};
+        int autoStart{}, loopCount{};
+        metaContainer itemList{account.get("Goals")};
         /*
         while(!itemList.empty()){
             for (auto item: itemList[0]){ // go through the list of items to schedule

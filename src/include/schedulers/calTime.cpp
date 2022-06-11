@@ -7,7 +7,7 @@
 class calTime{
     public:
         calTime();
-        void init(int offset);// deprecate??
+        void init(int offset);
         int year{};
         int month{};
         int date{};
