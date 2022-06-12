@@ -23,11 +23,11 @@ calTime::calTime(){
         std::chrono::system_clock::now()
     )};
     auto ltm{std::localtime(&now)};
-    year = 1900 + ltm->tm_year;
-    month = 1 + ltm->tm_mon;
-    date = ltm->tm_mday;
+    this->year = 1900 + ltm->tm_year;
+    this->month = 1 + ltm->tm_mon;
+    this->date = ltm->tm_mday;
     ss << year << ":" << month << ":" << date;
-    baseDate = ss.str();
+    this->baseDate = ss.str();
 };
 
 void calTime::init(int offset){
@@ -36,14 +36,14 @@ void calTime::init(int offset){
         std::chrono::system_clock::now() + std::chrono::days(offset)
     )};
     auto ltm{std::localtime(&now)};
-    year = 1900 + ltm->tm_year;
-    month = 1 + ltm->tm_mon;
-    date = ltm->tm_mday;
-    weekday = ltm->tm_wday;
-    minute_t = (ltm->tm_hour * 60) + ltm->tm_min;
+    this->year = 1900 + ltm->tm_year;
+    this->month = 1 + ltm->tm_mon;
+    this->date = ltm->tm_mday;
+    this->weekday = ltm->tm_wday;
+    this->minute_t = (ltm->tm_hour * 60) + ltm->tm_min;
     ss << year << ":" << month << ":" << date;
-    strDate = ss.str();
-    if (offset) minute_t = 0;
+    this->strDate = ss.str();
+    if (offset) this->minute_t = 0;
 };
 
 #endif

@@ -35,6 +35,8 @@ std::string megaString::getFile(const std::string filename){ // utilities
 }
 
 std::string megaString::strip(const std::string data){// place in converters?? sub of validateFile
+    //MINVH
+    //scoping not complete
     // does not guarantee objectify valid data
     int depth{};
     std::string str{};

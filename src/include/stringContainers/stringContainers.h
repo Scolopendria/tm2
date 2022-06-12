@@ -6,6 +6,22 @@
 #include <vector>
 #include <array>
 
+class task{
+    private:
+        int startTime;
+        int endTime;
+        int timeUsed;
+        std::string name;
+        std::string stdTime;
+    public:
+        task(std::string taskName, int start, int end);
+        int getStart();
+        int getEnd();
+        int getTimeUsed();
+        std::string getName();
+        std::string getFullStdTime();
+};
+
 class attributeContainer{
     private:
         std::vector<std::array<std::string, 2>> attributes{};
@@ -43,10 +59,12 @@ class node{
 
 class metaContainer{
     private:
+        
         int totalTime{};
         int timeUsed{};
         std::string name{};
         std::string fullname{};
+        task t{std::string{}, int{}, int{}};
         std::vector<metaContainer> extractFreeRadicals();
     public:
         metaContainer(node data, std::string parent);
@@ -56,6 +74,8 @@ class metaContainer{
         attributeContainer attributes{};
         std::string getName();
         int updateTotalTime();
+        task getTask();
+        metaContainer* initTask(int start);
         std::vector<metaContainer> extract();
 };
 
@@ -70,9 +90,17 @@ class megaString{
         node child{};
 };
 
+class collideResult{
+        public:
+            bool scheduled{false};
+            std::vector<metaContainer> scheduleBook{};
+            collideResult(bool scheduled, std::vector<metaContainer> scheduleBook);
+};
+
 #include "megaString.cpp"
 #include "node.cpp"
 #include "attributeContainers.cpp"
 #include "metaContainers.cpp"
+#include "schedulerClasses.cpp"
 
 #endif

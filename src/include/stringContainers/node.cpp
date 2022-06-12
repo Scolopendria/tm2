@@ -39,7 +39,7 @@ node* node::objectify(){
     };
 
     auto cut = [](std::string data, const std::array<std::string::size_type, 2> pincer){
-        return data.substr(pincer[0], pincer[1]); //unsure if it works...
+        return data.substr(pincer[0], pincer[1]);
     };
 
     char p{};
@@ -88,7 +88,7 @@ node* node::objectify(){
                 forge(cut(this->data, pincer));
             }
         }
-    } // missing error checks
+    }// MINVH
 
     return this;
 }
@@ -99,13 +99,19 @@ std::string node::refresh(){
     };
 
     this->data = encapsulate(this->name) + "{";
+
     for (auto &&ID_pair : this->attributes.getList()){
         this->data = this->data + encapsulate(ID_pair[0]) + "=" + encapsulate(ID_pair[1]);
     }
-    for (auto &child : this->children){ // directly update data
+
+    for (auto &child : this->children){
+        // directly update data
+        // test no '&'
         this->data = this->data + child.refresh();
     }
+
     this->data = this->data + "}";
+
     return this->data;
 }
 
@@ -118,32 +124,32 @@ std::vector<node> node::getChildren(){
 }
 
 node* node::deleteChild(std::string childIdentifier){
-    for (std::size_t i{this->children.size() - 1};  i != SIZE_MAX; i--){
+    for (std::size_t i{this->children.size()-1};  i != SIZE_MAX; i--){
         if (this->children[i].getName() == childIdentifier) this->children.erase(this->children.begin() + i);
     }
     return this;
 }
 
 node* node::forge(node child){
-    deleteChild(child.getName());
+    this->deleteChild(child.getName());
     this->children.push_back(child);
     return this;
 }
 
 node* node::forge(std::string childData){
-    return forge(node{childData});
+    return this->forge(node{childData});
 }
 
 node* node::forge(std::vector<node> children){
-    for (auto &&child : this->children){
-        forge(child);
+    for (auto &&child : children){
+        this->forge(child);
     }
     return this;
 }
 
 node node::get(std::string childIdentifier){
     for (auto &&child : this->children) if (child.getName() == childIdentifier) return child;
-    forge("\"" + childIdentifier + "\"");
+    this->forge("\"" + childIdentifier + "\"");
     return this->children.back();
 }
 
