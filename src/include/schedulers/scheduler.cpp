@@ -6,8 +6,16 @@
 
 megaString scheduler(megaString tm2);
 node schedule(node account);
-collideResult collide(std::vector<metaContainer> sheduleBook, metaContainer item, int ceiling, int floor);
+metaContainer wheel(metaContainer day);
+collideResult collide(
+    std::vector<metaContainer> sheduleBook,
+    metaContainer item,
+    std::size_t i,
+    int ceiling,
+    int floor
+);
 metaContainer pruneIrrelevantTasks(metaContainer completeList, calTime cal);
+attributeContainer decontainerize(metaContainer day);
 
 megaString scheduler(megaString tm2){
     for (auto&& child : tm2.child.getChildren()){
@@ -17,38 +25,76 @@ megaString scheduler(megaString tm2){
 }
 
 node schedule(node account){
-    calTime cal{};
-
     for (int i{}; i < 14; i++){
-        cal.init(i);
-        int loopCount{};
-        std::vector<metaContainer> scheduleBook{};
-        auto itemList = pruneIrrelevantTasks(metaContainer{account.get("Goals")}, cal).extract();
-
-        while(!itemList.empty()){
-            for (std::size_t i{itemList.size()-1}; i != SIZE_MAX; i--){// go through the list of items to schedule
-                // initialize all the variables
-                int autoStart{cal.minute_t+1};
-                
-                for (auto meta : scheduleBook){
-                    // condition checks.. behaviour and dependancies
-                    // check if scheduling before the next task's start time
-                    // if true, that means autoStart is in open time
-                    if (autoStart > cal.minute_t && autoStart < meta.getTask().getStart()){
-                        auto pack = collide(scheduleBook, meta, 0, 1440);
-                    }
-                    autoStart = std::max(meta.getTask().getEnd(), autoStart);// prevent autoStart from decreasing
-                }
-            }
-
-            loopCount++;
-        }
+        account.attributes = decontainerize(
+            wheel(
+                pruneIrrelevantTasks(
+                    metaContainer{account.get("Goals")},
+                    calTime{i}
+                ).extract()
+            )
+        );
     }
 
     return account;
 }
 
-collideResult collide(std::vector<metaContainer> sheduleBook, metaContainer item, int ceiling, int floor){
+metaContainer wheel(metaContainer day){
+    day.freeRadicals.clear();// repurpose freeRadicals for storing scheduled tasks
+    /*while(!day.children.empty()){
+
+    }
+    //////////////////////////////////
+        for (auto item: itemList[0]){ // go through the list of items to schedule
+            // initialize all the variables
+            scheduleBook = initAttributes(sPath->sortAttributes()->getAttributesList());
+            //print(scheduleBook);
+            scheduled = false;
+            autoStart = std::stoi(item.attributes.get("start"));
+            for (auto t : scheduleBook){
+                // condition checks.. behaviour and dependancies
+                // check if scheduling before the next task's start time
+                // if true, that means autoStart is in open time
+                if (autoStart > caltime.minute_t && autoStart < t.getStart()){
+                    scheduled = collide(
+                        gRoot,
+                        sPath,
+                        caltime.minute_t + 1,
+                        item,
+                        scheduleBook,
+                        autoStart
+                    );
+                    if (scheduled) break;
+                }
+                autoStart = std::max(t.getEnd(), autoStart);
+            }
+            if (!scheduled){
+                scheduled = collide(// scheduled unused here
+                    gRoot,
+                    sPath,
+                    caltime.minute_t + 1,
+                    item,
+                    scheduleBook,
+                    autoStart
+                );
+            }
+        }
+        // reinitialize itemList -list of tasks left to be scheduled
+        // loopcount and sPath needs to be incorporated into a giant object to be passed around
+        itemList = smartPass(purge(demote(itemList[0], loopCount++), sPath), itemList[1]);
+    }
+    decontainerize(itemList[1], sPath);
+    */
+   return day;
+}
+
+collideResult collide(
+    std::vector<metaContainer> sheduleBook,
+    metaContainer item,
+    std::size_t i,
+    int ceiling,
+    int floor
+){
 /*
     //initializations
     int ceilValue{startCeiling}, floorValue{1440},
@@ -137,6 +183,23 @@ metaContainer pruneIrrelevantTasks(metaContainer completeList, calTime cal){
     }
 
     return completeList;
+}
+
+attributeContainer decontainerize(metaContainer day){
+    attributeContainer scheduleBook{};
+    if (day.attributes.get("shellCast") != "true"){
+        scheduleBook.set(
+            task{"", day.getTask().getStart(), std::stoi(day.attributes.get("time"))}.getFullStdTime(),
+            // a but redundant
+            day.getName()
+        );
+    }
+
+    for (auto &&child : day.freeRadicals){
+        day.attributes.set(decontainerize(child).getList());
+    }
+
+    return scheduleBook;
 }
 
 #endif

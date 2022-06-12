@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 #include "include/headers.h"
+//only non-hDev component: node.cpp:refresh()
 
 int main(int argc, char **argv){
     megaString tm2{[argc, argv](){

@@ -59,7 +59,6 @@ class node{
 
 class metaContainer{
     private:
-        
         int totalTime{};
         int timeUsed{};
         std::string name{};
@@ -69,6 +68,7 @@ class metaContainer{
     public:
         metaContainer(node data, std::string parent);
         metaContainer(node data);// Overload
+        metaContainer(std::vector<metaContainer> day);
         std::vector<metaContainer> children{};
         std::vector<metaContainer> freeRadicals{};
         attributeContainer attributes{};
@@ -76,7 +76,7 @@ class metaContainer{
         int updateTotalTime();
         task getTask();
         metaContainer* initTask(int start);
-        std::vector<metaContainer> extract();
+        metaContainer extract();
 };
 
 class megaString{
