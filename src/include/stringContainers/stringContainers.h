@@ -44,13 +44,19 @@ class node{
 class metaContainer{
     private:
         int totalTime{};
+        int timeUsed{};
         std::string name{};
-        std::vector<metaContainer> children{};
-        attributeContainer attributes{};
+        std::string fullname{};
+        std::vector<metaContainer> extractFreeRadicals();
     public:
-        metaContainer(node data);
-        int getTotalTime();
+        metaContainer(node data, std::string parent);
+        metaContainer(node data);// Overload
+        std::vector<metaContainer> children{};
+        std::vector<metaContainer> freeRadicals{};
+        attributeContainer attributes{};
         std::string getName();
+        int updateTotalTime();
+        std::vector<metaContainer> extract();
 };
 
 class megaString{

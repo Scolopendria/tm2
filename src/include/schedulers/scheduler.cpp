@@ -5,7 +5,7 @@
 
 megaString scheduler(megaString tm2);
 node schedule(node account);
-
+metaContainer pruneIrrelevantTasks(metaContainer completeList, calTime cal);
 
 megaString scheduler(megaString tm2){
     for (auto&& child : tm2.child.getChildren()){
@@ -19,18 +19,17 @@ node schedule(node account){
 
     for (int i{}; i < 14; i++){
         cal.init(i);
+        int loopCount{};
+        auto itemList = pruneIrrelevantTasks(metaContainer{account.get("Goals")}, cal).extract();
 
-        bool scheduled{false};
-        int autoStart{}, loopCount{};
-        metaContainer itemList{account.get("Goals")};
-        /*
         while(!itemList.empty()){
-            for (auto item: itemList[0]){ // go through the list of items to schedule
+            for (auto item: itemList){// go through the list of items to schedule
                 // initialize all the variables
-                //scheduleBook = initAttributes(sPath->sortAttributes()->getAttributesList());
-                //print(scheduleBook);
-                scheduled = false;
-                autoStart = std::stoi(item.attributes.get("start"));
+                bool scheduled{false};
+                int autoStart{std::stoi(item.attributes.get("start"))};// missing error handling
+                /*auto scheduleBook = initAttributes();
+                //Something along the lines of initAttributes(), but adjusted for containers
+                
                 for (auto t : scheduleBook){
                     // condition checks.. behaviour and dependancies
                     // check if scheduling before the next task's start time
@@ -57,17 +56,26 @@ node schedule(node account){
                         scheduleBook,
                         autoStart
                     );
-                }
+                }*/
             }
-            // reinitialize itemList -list of tasks left to be scheduled
-            //loopcount and sPath needs to be oncorporated into a giant object to be passed around
-            //itemList = smartPass(purge(demote(itemList[0], loopCount++), sPath), itemList[1]);
+            loopCount++;
         }
-        decontainerize(itemList[1]);
-        */
     }
 
     return account;
+}
+
+metaContainer pruneIrrelevantTasks(metaContainer completeList, calTime cal){
+    // simplified version
+    for (int i{completeList.children.size()}; i != 0; i--){
+        if (completeList.children[i].attributes.get("date") != cal.strDate){
+            completeList.children.erase(completeList.children.begin() + i);
+        } else {
+            pruneIrrelevantTasks(completeList.children[i], cal);
+        }
+    }
+
+    return completeList;
 }
 
 #endif
