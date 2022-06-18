@@ -35,9 +35,4 @@ int task::getTimeUsed(){
     return this->timeUsed;
 }
 
-collideResult::collideResult(bool scheduled, std::vector<metaContainer> scheduleBook){
-    this->scheduled = scheduled;
-    this->scheduleBook = scheduleBook;
-}
-
 #endif

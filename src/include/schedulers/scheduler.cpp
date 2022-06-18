@@ -7,7 +7,7 @@
 megaString scheduler(megaString tm2);
 node schedule(node account);
 metaContainer wheel(metaContainer day);
-collideResult collide(
+std::vector<metaContainer> collide(
     std::vector<metaContainer> sheduleBook,
     metaContainer item,
     std::size_t i,
@@ -39,56 +39,39 @@ node schedule(node account){
     return account;
 }
 
-metaContainer wheel(metaContainer day){
-    day.freeRadicals.clear();// repurpose freeRadicals for storing scheduled tasks
-    /*while(!day.children.empty()){
-
-    }
-    //////////////////////////////////
-        for (auto item: itemList[0]){ // go through the list of items to schedule
-            // initialize all the variables
-            scheduleBook = initAttributes(sPath->sortAttributes()->getAttributesList());
-            //print(scheduleBook);
-            scheduled = false;
-            autoStart = std::stoi(item.attributes.get("start"));
-            for (auto t : scheduleBook){
-                // condition checks.. behaviour and dependancies
-                // check if scheduling before the next task's start time
-                // if true, that means autoStart is in open time
-                if (autoStart > caltime.minute_t && autoStart < t.getStart()){
-                    scheduled = collide(
-                        gRoot,
-                        sPath,
-                        caltime.minute_t + 1,
-                        item,
-                        scheduleBook,
-                        autoStart
+metaContainer wheel(metaContainer day){// dysfunctional
+/*
+    while(!day.children.empty()){
+        for (auto /*fix*//*child : day.children){// require '&'?
+            bool scheduled{false};
+            int autoStart{std::stoi(day.attributes.get("start"))};// MINVH
+            for (auto scheduledTask : day.children){
+                if (autoStart < scheduledTask.getTask().getStart()){
+                    day.children = collide(
+                        day.children,
+                        child,
+                        1,
+                        day.getTask().getStart(),
+                        day.getTask().getEnd()
                     );
-                    if (scheduled) break;
                 }
-                autoStart = std::max(t.getEnd(), autoStart);
             }
             if (!scheduled){
-                scheduled = collide(// scheduled unused here
-                    gRoot,
-                    sPath,
-                    caltime.minute_t + 1,
-                    item,
-                    scheduleBook,
-                    autoStart
+                day.children = collide(
+                    day.children,
+                    child,
+                    1,
+                    day.getTask().getStart(),
+                    day.getTask().getEnd()
                 );
             }
         }
-        // reinitialize itemList -list of tasks left to be scheduled
-        // loopcount and sPath needs to be incorporated into a giant object to be passed around
-        itemList = smartPass(purge(demote(itemList[0], loopCount++), sPath), itemList[1]);
     }
-    decontainerize(itemList[1], sPath);
-    */
+*/
    return day;
 }
 
-collideResult collide(
+std::vector<metaContainer> collide(
     std::vector<metaContainer> sheduleBook,
     metaContainer item,
     std::size_t i,
@@ -169,7 +152,7 @@ collideResult collide(
     //recalculate, if item is lowest prioirty return false
     return false;
 */
-    return collideResult(false, sheduleBook);
+    return sheduleBook;
 }
 
 metaContainer pruneIrrelevantTasks(metaContainer completeList, calTime cal){
@@ -187,16 +170,11 @@ metaContainer pruneIrrelevantTasks(metaContainer completeList, calTime cal){
 
 attributeContainer decontainerize(metaContainer day){
     attributeContainer scheduleBook{};
-    if (day.attributes.get("shellCast") != "true"){
-        scheduleBook.set(
-            task{"", day.getTask().getStart(), std::stoi(day.attributes.get("time"))}.getFullStdTime(),
-            // a but redundant
-            day.getName()
-        );
-    }
 
-    for (auto &&child : day.freeRadicals){
-        day.attributes.set(decontainerize(child).getList());
+    if (day.getName() == "self") scheduleBook.set(day.getTask().getFullStdTime(), day.getTask().getName());// redundant
+
+    for (auto &&child : day.children){
+        scheduleBook.set(decontainerize(child).getList());
     }
 
     return scheduleBook;

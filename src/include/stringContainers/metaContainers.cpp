@@ -10,15 +10,12 @@ metaContainer::metaContainer(node data, std::string parent){
     this->attributes = data.attributes;
     this->timeUsed = std::stoi(this->attributes.get("time")) + std::stoi(this->attributes.get("timeMarginEnd"));
     // *WARNING* No value check (MINVH)
-    // consider whether to move radical tasks during initialization or later
-    for (auto child : data.getChildren()){
-        if (child.attributes.get("freeRadiacals") == "true"){// pseudocheck
-            this->freeRadicals.push_back(metaContainer(child, this->fullname));
-        } else {
-            this->children.push_back(metaContainer(child, this->fullname));
-        }
+    // consider whether to move radical tasks during initialization or later // maybe not
+    for (auto &&child : data.getChildren()){
+        this->children.push_back(metaContainer(child, this->fullname));
     }
 
+    if (this->name != "self" || this->attributes.get("shellCast") == "true") this->children.push_back(metaContainer{this->fullname, this->attributes});
     this->updateTotalTime();
 }
 
@@ -37,14 +34,28 @@ metaContainer::metaContainer(std::vector<metaContainer> day){
     this->t = task{"", 0, 1440};
 }
 
+metaContainer::metaContainer(std::string fullname, attributeContainer inheritAttributes){
+    this->name = "self";
+    this->fullname = fullname;
+    this->attributes = inheritAttributes;
+    this->timeUsed = std::stoi(this->attributes.get("time")) + std::stoi(this->attributes.get("timeMarginEnd"));
+    // *WARNING* No value check (MINVH)
+}
+
 std::string metaContainer::getName(){
     return this->name;
 }
 
-int metaContainer::updateTotalTime(){
-    this->totalTime = this->timeUsed;
+std::string metaContainer::getFullname(){
+    return this->fullname;
+}
 
-    for (auto child : this->children){
+int metaContainer::updateTotalTime(){
+    if (this->name == "self"){
+        totalTime == timeUsed;
+    }
+
+    for (auto &child : this->children){// fix
         this->totalTime += child.updateTotalTime();
     }
 
@@ -56,38 +67,50 @@ task metaContainer::getTask(){
 }
 
 
-metaContainer* metaContainer::initTask(int start){
-    this->t = task{this->name, start, start + this->timeUsed};
+metaContainer* metaContainer::init(int start){
+    this->scheduled = true;
+    this->t = task{this->name, start, start + this->updateTotalTime()};
     return this;
 }
+
+metaContainer* metaContainer::uninit(){
+    this->scheduled = false;
+    this->t = task{std::string{}, int{}, int{}};
+    return this;
+}
+
+bool metaContainer::isScheduled(){
+    return this->scheduled;
+}
+
 metaContainer metaContainer::extract(){// consider moving to converters or scheduler
-    std::vector<metaContainer> completeList{*this};
-    completeList.insert(completeList.end(), this->freeRadicals.begin(), this->freeRadicals.end());
+    std::vector<metaContainer> completeList{};
 
-    for (auto &&child : this->children){
-        const std::vector<metaContainer> radicalList{child.extractFreeRadicals()};
-        completeList.insert(completeList.end(), radicalList.begin(), radicalList.end());
+    for (int i{this->children.size()}; i != SIZE_MAX; i--){
+        const std::vector<metaContainer> radicals{this->children[i].extractFreeRadicals()};
+        completeList.insert(completeList.end(), radicals.begin(), radicals.end());
+
+        if (this->children[i].attributes.get("freeRadical") == "true"){
+            completeList.push_back(this->children[i]);
+            this->children.erase(this->children.begin() + i);
+        }
     }
 
-    for (auto &&child : this->freeRadicals){
-        const std::vector<metaContainer> radicalList{child.extractFreeRadicals()};
-        completeList.insert(completeList.end(), radicalList.begin(), radicalList.end());
-    }
-
+    completeList.push_back(*this);
     return metaContainer{completeList};
 }
 
 std::vector<metaContainer> metaContainer::extractFreeRadicals(){
-    std::vector<metaContainer> radicalList{this->freeRadicals};
+    std::vector<metaContainer> radicalList{};
 
-    for (auto &&child : this->children){
-        const std::vector<metaContainer> pList{child.extractFreeRadicals()};
-        radicalList.insert(radicalList.end(), pList.begin(), pList.end());
-    }
-
-    for (auto &&child : this->freeRadicals){
-        const std::vector<metaContainer> pList{child.extractFreeRadicals()};
-        radicalList.insert(radicalList.end(), pList.begin(), pList.end());
+    for (int i{this->children.size()}; i != SIZE_MAX; i--){
+        const std::vector<metaContainer> radicals{this->children[i].extractFreeRadicals()};
+        radicalList.insert(radicalList.end(), radicals.begin(), radicals.end());
+        
+        if (this->children[i].attributes.get("freeRadical") == "true"){
+            radicalList.push_back(this->children[i]);
+            this->children.erase(this->children.begin() + i);
+        }
     }
 
     return radicalList;

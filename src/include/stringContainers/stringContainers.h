@@ -59,6 +59,7 @@ class node{
 
 class metaContainer{
     private:
+        bool scheduled{false};
         int totalTime{};
         int timeUsed{};
         std::string name{};
@@ -69,13 +70,16 @@ class metaContainer{
         metaContainer(node data, std::string parent);
         metaContainer(node data);// Overload
         metaContainer(std::vector<metaContainer> day);
+        metaContainer(std::string fullname, attributeContainer inheritAttributes);
         std::vector<metaContainer> children{};
-        std::vector<metaContainer> freeRadicals{};
         attributeContainer attributes{};
+        bool isScheduled();
         std::string getName();
-        int updateTotalTime();
+        std::string getFullname();
         task getTask();
-        metaContainer* initTask(int start);
+        int updateTotalTime();
+        metaContainer* init(int start);
+        metaContainer* uninit();
         metaContainer extract();
 };
 
@@ -88,13 +92,6 @@ class megaString{
         megaString(std::vector<std::string> commands);
         ~megaString();
         node child{};
-};
-
-class collideResult{
-        public:
-            bool scheduled{false};
-            std::vector<metaContainer> scheduleBook{};
-            collideResult(bool scheduled, std::vector<metaContainer> scheduleBook);
 };
 
 #include "megaString.cpp"
