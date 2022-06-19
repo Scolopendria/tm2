@@ -2,7 +2,7 @@
 #define METACONTAINERS_CPP
 
 #include "stringContainers.h"
-//converters??
+#include <algorithm>
 
 metaContainer::metaContainer(node data, std::string parent){
     this->name = data.getName();
@@ -15,7 +15,7 @@ metaContainer::metaContainer(node data, std::string parent){
         this->children.push_back(metaContainer(child, this->fullname));
     }
 
-    if (this->name != "self" || this->attributes.get("shellCast") == "true") this->children.push_back(metaContainer{this->fullname, this->attributes});
+    if (this->name != "self" && this->attributes.get("shellCast") != "true") this->children.push_back(metaContainer{this->fullname, this->attributes});
     this->updateTotalTime();
 }
 
@@ -25,13 +25,13 @@ metaContainer::metaContainer(node data){
 
 metaContainer::metaContainer(std::vector<metaContainer> day){
     this->attributes.set("shellCast", "true");
+    this->t = task{"", 0, 1440};
 
     for (auto &&child : day){
         this->children.push_back(child);
     }
 
     this->updateTotalTime();
-    this->t = task{"", 0, 1440};
 }
 
 metaContainer::metaContainer(std::string fullname, attributeContainer inheritAttributes){
@@ -67,26 +67,34 @@ task metaContainer::getTask(){
 }
 
 
-metaContainer* metaContainer::init(int start){
-    this->scheduled = true;
-    this->t = task{this->name, start, start + this->updateTotalTime()};
+metaContainer* metaContainer::init(int childPosition, int start){
+    // initialize task
+    this->children[childPosition].t = task{this->name, start, start + this->updateTotalTime()};
+    // add to scheduled
+    this->scheduledChildren.push_back(this->children[childPosition]);
+    // delete from unscheduled
+    this->children.erase(this->children.begin() + childPosition);
+
+    std::sort(
+        this->scheduledChildren.begin(),
+        this->scheduledChildren.end(),
+        [](metaContainer a, metaContainer b){
+            return a.getTask().getStart() < b.getTask().getStart();
+        }
+    );
+
     return this;
 }
 
-metaContainer* metaContainer::uninit(){
-    this->scheduled = false;
-    this->t = task{std::string{}, int{}, int{}};
+metaContainer* metaContainer::uninit(int childPosition){// undefined
     return this;
 }
 
-bool metaContainer::isScheduled(){
-    return this->scheduled;
-}
 
 metaContainer metaContainer::extract(){// consider moving to converters or scheduler
     std::vector<metaContainer> completeList{};
 
-    for (int i{this->children.size()}; i != SIZE_MAX; i--){
+    for (std::size_t i{this->children.size()}; i != SIZE_MAX; i--){
         const std::vector<metaContainer> radicals{this->children[i].extractFreeRadicals()};
         completeList.insert(completeList.end(), radicals.begin(), radicals.end());
 
@@ -103,7 +111,7 @@ metaContainer metaContainer::extract(){// consider moving to converters or sched
 std::vector<metaContainer> metaContainer::extractFreeRadicals(){
     std::vector<metaContainer> radicalList{};
 
-    for (int i{this->children.size()}; i != SIZE_MAX; i--){
+    for (std::size_t i{this->children.size()}; i != SIZE_MAX; i--){
         const std::vector<metaContainer> radicals{this->children[i].extractFreeRadicals()};
         radicalList.insert(radicalList.end(), radicals.begin(), radicals.end());
         

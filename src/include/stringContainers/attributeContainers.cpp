@@ -19,7 +19,7 @@ std::vector<std::array<std::string, 2>> attributeContainer::getList(){
 }
 
 std::string attributeContainer::get(std::string identifier){
-    for (auto&& ID_pair : this->attributes){
+    for (auto &&ID_pair : this->attributes){
         if (ID_pair[0] == identifier) return ID_pair[1];
     }
     return "NULL";
@@ -36,7 +36,7 @@ attributeContainer* attributeContainer::set(std::string identifier, std::string 
 }
 
 attributeContainer* attributeContainer::set(std::vector<std::array<std::string, 2>> attributes){
-    for (auto&& ID_pair : attributes){
+    for (auto &&ID_pair : attributes){
         this->set(ID_pair);
     }
     return this;

@@ -6,7 +6,8 @@
 #include <vector>
 #include <array>
 
-class task{
+//utilities?
+class task{// any redundant members?
     private:
         int startTime;
         int endTime;
@@ -31,7 +32,7 @@ class attributeContainer{
         std::vector<std::array<std::string, 2>> getList();
         std::string get(std::string identifier);
         attributeContainer* set(std::array<std::string, 2> ID_pair);
-        attributeContainer* set(std::string identifier, std::string value); //Overload
+        attributeContainer* set(std::string identifier, std::string value);// Overload
         attributeContainer* set(std::vector<std::array<std::string, 2>> attributes);
         attributeContainer* deleteAttribute(std::string identifier);
 };
@@ -41,7 +42,7 @@ class node{
         std::string data{};
         std::string name{};
         std::vector<node> children{};
-        node* objectify();
+        node* objectify();// a bit of a mess
     public:
         node();
         node(std::string data);
@@ -59,9 +60,8 @@ class node{
 
 class metaContainer{
     private:
-        bool scheduled{false};
         int totalTime{};
-        int timeUsed{};
+        int timeUsed{};// redundant?
         std::string name{};
         std::string fullname{};
         task t{std::string{}, int{}, int{}};
@@ -69,18 +69,18 @@ class metaContainer{
     public:
         metaContainer(node data, std::string parent);
         metaContainer(node data);// Overload
-        metaContainer(std::vector<metaContainer> day);
         metaContainer(std::string fullname, attributeContainer inheritAttributes);
+        metaContainer(std::vector<metaContainer> day);
         std::vector<metaContainer> children{};
+        std::vector<metaContainer> scheduledChildren{};
         attributeContainer attributes{};
-        bool isScheduled();
         std::string getName();
         std::string getFullname();
         task getTask();
         int updateTotalTime();
-        metaContainer* init(int start);
-        metaContainer* uninit();
-        metaContainer extract();
+        metaContainer* init(int childPosition, int start);
+        metaContainer* uninit(int childPosition);
+        metaContainer extract();// utilities?
 };
 
 class megaString{

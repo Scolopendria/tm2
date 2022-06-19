@@ -7,18 +7,12 @@
 megaString scheduler(megaString tm2);
 node schedule(node account);
 metaContainer wheel(metaContainer day);
-std::vector<metaContainer> collide(
-    std::vector<metaContainer> sheduleBook,
-    metaContainer item,
-    std::size_t i,
-    int ceiling,
-    int floor
-);
+metaContainer collide(metaContainer day);
 metaContainer pruneIrrelevantTasks(metaContainer completeList, calTime cal);
 attributeContainer decontainerize(metaContainer day);
 
 megaString scheduler(megaString tm2){
-    for (auto&& child : tm2.child.getChildren()){
+    for (auto &&child : tm2.child.getChildren()){
         tm2.child.forge(schedule(child));
     }
     return tm2;
@@ -39,45 +33,25 @@ node schedule(node account){
     return account;
 }
 
-metaContainer wheel(metaContainer day){// dysfunctional
-/*
-    while(!day.children.empty()){
-        for (auto /*fix*//*child : day.children){// require '&'?
-            bool scheduled{false};
-            int autoStart{std::stoi(day.attributes.get("start"))};// MINVH
-            for (auto scheduledTask : day.children){
-                if (autoStart < scheduledTask.getTask().getStart()){
-                    day.children = collide(
-                        day.children,
-                        child,
-                        1,
-                        day.getTask().getStart(),
-                        day.getTask().getEnd()
-                    );
-                }
-            }
-            if (!scheduled){
-                day.children = collide(
-                    day.children,
-                    child,
-                    1,
-                    day.getTask().getStart(),
-                    day.getTask().getEnd()
-                );
-            }
-        }
+metaContainer wheel(metaContainer day){
+    // param niche of this function, wheel, and unnderling function, collide, is the same
+    // they do have different functional roles, though
+    // schedule children
+    while (!day.children.empty()){
+        day = collide(day);
+        //day.children = demote(day.children);
     }
-*/
-   return day;
+    // recursively schedule (spin through) scheduled-children
+    std::vector<metaContainer> scheduledChildrenTree{};
+    for (auto &&child : day.scheduledChildren){
+        scheduledChildrenTree.push_back(wheel(child));
+    }
+    day.scheduledChildren = scheduledChildrenTree;
+
+    return day;
 }
 
-std::vector<metaContainer> collide(
-    std::vector<metaContainer> sheduleBook,
-    metaContainer item,
-    std::size_t i,
-    int ceiling,
-    int floor
-){
+metaContainer collide(metaContainer day){// dysfunctional
 /*
     //initializations
     int ceilValue{startCeiling}, floorValue{1440},
@@ -152,7 +126,7 @@ std::vector<metaContainer> collide(
     //recalculate, if item is lowest prioirty return false
     return false;
 */
-    return sheduleBook;
+    return day;
 }
 
 metaContainer pruneIrrelevantTasks(metaContainer completeList, calTime cal){
@@ -173,7 +147,7 @@ attributeContainer decontainerize(metaContainer day){
 
     if (day.getName() == "self") scheduleBook.set(day.getTask().getFullStdTime(), day.getTask().getName());// redundant
 
-    for (auto &&child : day.children){
+    for (auto &&child : day.scheduledChildren){
         scheduleBook.set(decontainerize(child).getList());
     }
 
