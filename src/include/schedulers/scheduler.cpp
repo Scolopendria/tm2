@@ -23,6 +23,9 @@ node schedule(node account){
         account.attributes = decontainerize(
             wheel(
                 pruneIrrelevantTasks(
+                    // switch to decide which task gets scheduled on which day before sending it to wheel
+                    // basically prube irrevlevant task before wheel for better long term management
+                    // introduce 'demotions' in this meta pruner and cross-day info passing
                     metaContainer{account.get("Goals")},
                     calTime{i}
                 ).extract()
@@ -52,80 +55,24 @@ metaContainer wheel(metaContainer day){
 }
 
 metaContainer collide(metaContainer day){// dysfunctional
-/*
-    //initializations
-    int ceilValue{startCeiling}, floorValue{1440},
-        totalUsedTime{std::stoi(item.attributes.get("time")) + 1}, allocatedTime, nextHead;
-    std::size_t iter{}, ceiling, floor, slider;
-    // set iters
-    while (iter != scheduleBook.size()){
-        if (start >= scheduleBook[iter].getEnd()) iter++; //trying to schedule before
-        else break;
-    }
-    floor = iter;
-    ceiling = iter;
-    if (iter == scheduleBook.size()) nextHead = 1440;
-    else nextHead = scheduleBook[ceiling].getStart();
-    // check to see if nextHead is greater than start
-    // if true, that means scheduling is in open space
-    // and ceiling is set to the item above it
-    if (nextHead > start) ceiling--;
-    //find top boulder
-    while (ceiling != std::string::npos){
-        if (
-            nav(scheduleBook[ceiling].getName(), gRoot)->get("strict") == "NULL" &&
-            ceilValue < scheduleBook[ceiling].getStart()
-        ) ceiling--;
-        else break;
-    }
-    if (ceiling != std::string::npos)
-        ceilValue = std::max(ceilValue, scheduleBook[ceiling].getEnd());
+    for (std::size_t i{day.children.size()}; i != SIZE_MAX; i--){
+        int totalTimeUsed{day.children[i].updateTotalTime()+1};
 
-    //find bottom boulder
-    while (floor != scheduleBook.size()){
-        if (nav(scheduleBook[floor].getName(), gRoot)->get("strict") == "NULL") floor++;
-        else break;
-    }
-    if (floor != scheduleBook.size()) floorValue = scheduleBook[floor].getStart();
-    //calculate allocatedTime and totalUsedTime
-    allocatedTime = floorValue - ceilValue;
-    for (slider = ceiling + 1; slider < floor; slider++){
-        totalUsedTime += 1 + scheduleBook[slider].getTimeUsed();
-    }
-    // if time is not enough, find LP element and chuck it
-    // if lowest element is boulder, reschedule disregarding the boulder
-    // chuck not implemented 
-    if (allocatedTime > totalUsedTime){
-        for (slider = ceiling + 1; slider < iter; slider++){
-            sPath->deleteAttribute(scheduleBook[slider].getFullStdTime());
-            sPath->attribute(
-                stdTimeRep(ceilValue) + "-" +
-                stdTimeRep(ceilValue + scheduleBook[slider].getTimeUsed()),
-                scheduleBook[slider].getName()
-            );
-            ceilValue += 1 + scheduleBook[slider].getTimeUsed();
+        if (totalTimeUsed + day.getTask().getStart() < day.scheduledChildren.front().getTask().getStart()){
+            day.init(i, day.getTask().getStart()+1);
+        } else if (totalTimeUsed + day.scheduledChildren.back().getTask().getEnd() < day.getTask().getEnd()){
+            day.init(i, day.scheduledChildren.back().getTask().getEnd());
+        } else {
+            for (std::size_t iter{}; iter < day.scheduledChildren.size()-2; iter++){
+                if (totalTimeUsed + day.scheduledChildren[iter].getTask().getEnd() < day.scheduledChildren[iter+1].getTask().getStart()){
+                    day.init(i, day.scheduledChildren[i].getTask().getEnd());
+                    break;
+                }
+            }
         }
-
-        sPath->attribute(
-            stdTimeRep(ceilValue) + "-" + stdTimeRep(ceilValue + std::stoi(item.attributes.get("time"))),
-            item.fullpath
-        );
-        ceilValue += 1 + std::stoi(item.attributes.get("time"));
-
-        for (slider = iter; slider < floor; slider++){
-            sPath->deleteAttribute(scheduleBook[slider].getFullStdTime());
-            sPath->attribute(
-                stdTimeRep(ceilValue) + "-" +
-                stdTimeRep(ceilValue + scheduleBook[slider].getTimeUsed()),
-                scheduleBook[slider].getName()
-            );
-            ceilValue += 1 + scheduleBook[slider].getTimeUsed();
-        }
-         return true;
     }
-    //recalculate, if item is lowest prioirty return false
-    return false;
-*/
+
+    //missing optimizations
     return day;
 }
 

@@ -50,7 +50,7 @@ calTime* calTime::init(int offset){
     this->minute_t = (ltm->tm_hour * 60) + ltm->tm_min;
     ss << year << ":" << month << ":" << date;
     this->strDate = ss.str();
-    if (offset) this->minute_t = 0;
+    this->minute_t *= (!offset);
     return this;
 };
 

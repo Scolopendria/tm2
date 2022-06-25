@@ -67,7 +67,7 @@ task metaContainer::getTask(){
 }
 
 
-metaContainer* metaContainer::init(int childPosition, int start){
+metaContainer* metaContainer::init(std::size_t childPosition, int start){
     // initialize task
     this->children[childPosition].t = task{this->name, start, start + this->updateTotalTime()};
     // add to scheduled
@@ -86,7 +86,10 @@ metaContainer* metaContainer::init(int childPosition, int start){
     return this;
 }
 
-metaContainer* metaContainer::uninit(int childPosition){// undefined
+metaContainer* metaContainer::uninit(std::size_t childPosition){
+    this->scheduledChildren[childPosition].t = task{this->name, 0, 0};
+    this->children.push_back(this->scheduledChildren[childPosition]);
+    this->scheduledChildren.erase(this->scheduledChildren.begin() + childPosition);
     return this;
 }
 

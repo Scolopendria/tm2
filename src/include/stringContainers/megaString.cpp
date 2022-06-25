@@ -22,7 +22,7 @@ megaString::~megaString(){
     file.close();
 }
 
-std::string megaString::getFile(const std::string filename){ // utilities
+std::string megaString::getFile(const std::string filename){// utilities
     std::ifstream file(filename);
     if (!file.is_open()) return "\"tm2\"{}";
 

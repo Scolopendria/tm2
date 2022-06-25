@@ -78,8 +78,8 @@ class metaContainer{
         std::string getFullname();
         task getTask();
         int updateTotalTime();
-        metaContainer* init(int childPosition, int start);
-        metaContainer* uninit(int childPosition);
+        metaContainer* init(std::size_t childPosition, int start);
+        metaContainer* uninit(std::size_t childPosition);
         metaContainer extract();// utilities?
 };
 
