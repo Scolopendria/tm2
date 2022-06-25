@@ -21,7 +21,6 @@ node* node::objectify(){
         public:
             std::string identifier{};
             std::string::size_type i{};
-            package(){};
             package(std::string identifier, std::string::size_type i){
                 this->identifier = identifier;
                 this->i = i;
@@ -32,6 +31,7 @@ node* node::objectify(){
         pack.identifier = "";
         for (pack.i++; pack.i < data.length(); pack.i++){
             if (data[pack.i] != '"') pack.identifier = pack.identifier + data[pack.i];
+            else break;
         }
         //if (pack.i == data.length()) throwError("node::read(): File Overran");
         pack.i++;
@@ -47,7 +47,7 @@ node* node::objectify(){
     std::array<std::string, 2> ID_pair{};
     std::array<std::string::size_type, 2> pincer{};
 
-    package pack{read(this->data, package{})};
+    package pack{read(this->data, package{"", 0})};
     this->name = pack.identifier;
     pack.i++;
     
@@ -105,8 +105,7 @@ std::string node::refresh(){
     }
 
     for (auto &child : this->children){
-        // directly update data
-        // test no '&'
+        // directly update data// test no '&'
         this->data = this->data + child.refresh();
     }
 
