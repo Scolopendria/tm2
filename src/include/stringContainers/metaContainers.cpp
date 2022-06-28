@@ -3,14 +3,34 @@
 
 #include "stringContainers.h"
 #include <algorithm>
+#include <iostream>
+
+
+///// error handling ////////////////////
+
+int superstoi(std::string value, int defaultValue){// not final form
+    auto isNumber = [](const std::string& s){
+        std::string::const_iterator i = s.begin();
+        while (i != s.end() && std::isdigit(*i)) ++i;
+        return !s.empty() && i == s.end();
+    };
+
+    if (isNumber(value)){
+        return std::stoi(value);
+    }
+    
+    return defaultValue;
+}
+
+////////////////////////
 
 metaContainer::metaContainer(node data, std::string parent){
     this->name = data.getName();
-    this->fullname = parent + this->name;
+    this->fullname = parent + ":" + this->name;
     this->attributes = data.attributes;
-    this->timeUsed = std::stoi(this->attributes.get("time")) + std::stoi(this->attributes.get("timeMarginEnd"));
+    this->timeUsed = superstoi(this->attributes.get("time"), 30) + superstoi(this->attributes.get("timeMarginEnd"), 0);
     // *WARNING* No value check (MINVH)
-    // consider whether to move radical tasks during initialization or later // maybe not
+    
     for (auto &&child : data.getChildren()){
         this->children.push_back(metaContainer(child, this->fullname));
     }
@@ -20,11 +40,15 @@ metaContainer::metaContainer(node data, std::string parent){
 }
 
 metaContainer::metaContainer(node data){
-    metaContainer(data, "");
+    *this = metaContainer(data, "");
 }
 
 metaContainer::metaContainer(std::vector<metaContainer> day){
+    std::cout << "called" << std::endl;
+    this->name = "";
+    this->fullname = "day";
     this->attributes.set("shellCast", "true");
+    this->timeUsed = 0;
     this->t = task{"", 0, 1440};
 
     for (auto &&child : day){
@@ -38,7 +62,8 @@ metaContainer::metaContainer(std::string fullname, attributeContainer inheritAtt
     this->name = "self";
     this->fullname = fullname;
     this->attributes = inheritAttributes;
-    this->timeUsed = std::stoi(this->attributes.get("time")) + std::stoi(this->attributes.get("timeMarginEnd"));
+    this->timeUsed = superstoi(this->attributes.get("time"), 30) + superstoi(this->attributes.get("timeMarginEnd"), 0);
+    this->updateTotalTime();
     // *WARNING* No value check (MINVH)
 }
 
@@ -52,11 +77,15 @@ std::string metaContainer::getFullname(){
 
 int metaContainer::updateTotalTime(){
     if (this->name == "self"){
-        totalTime == timeUsed;
+        totalTime = timeUsed;
     }
 
-    for (auto &child : this->children){// fix
+    for (auto &child : this->children){// upgrade to hDev
         this->totalTime += child.updateTotalTime();
+    }
+
+    for (auto &child : this->children){
+        this->totalTime += child.updateTotalTime();;
     }
 
     return this->totalTime;
@@ -97,8 +126,8 @@ metaContainer* metaContainer::uninit(std::size_t childPosition){
 metaContainer metaContainer::extract(){// consider moving to converters or scheduler
     std::vector<metaContainer> completeList{};
 
-    for (std::size_t i{this->children.size()}; i != SIZE_MAX; i--){
-        const std::vector<metaContainer> radicals{this->children[i].extractFreeRadicals()};
+    for (std::size_t i{this->children.size()-1}; i != SIZE_MAX; i--){
+        const std::vector<metaContainer> radicals = this->children[i].extractFreeRadicals();
         completeList.insert(completeList.end(), radicals.begin(), radicals.end());
 
         if (this->children[i].attributes.get("freeRadical") == "true"){
@@ -114,8 +143,8 @@ metaContainer metaContainer::extract(){// consider moving to converters or sched
 std::vector<metaContainer> metaContainer::extractFreeRadicals(){
     std::vector<metaContainer> radicalList{};
 
-    for (std::size_t i{this->children.size()}; i != SIZE_MAX; i--){
-        const std::vector<metaContainer> radicals{this->children[i].extractFreeRadicals()};
+    for (std::size_t i{this->children.size()-1}; i != SIZE_MAX; i--){
+        const std::vector<metaContainer> radicals = this->children[i].extractFreeRadicals();
         radicalList.insert(radicalList.end(), radicals.begin(), radicals.end());
         
         if (this->children[i].attributes.get("freeRadical") == "true"){

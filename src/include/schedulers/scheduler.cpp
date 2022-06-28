@@ -3,6 +3,7 @@
 
 #include "schedulers.h"
 #include <vector>
+#include <iostream>
 
 megaString scheduler(megaString tm2);
 node schedule(node account);
@@ -12,23 +13,37 @@ metaContainer pruneIrrelevantTasks(metaContainer completeList, calTime cal);
 attributeContainer decontainerize(metaContainer day);
 
 megaString scheduler(megaString tm2){
-    for (auto &&child : tm2.child.getChildren()){
+    std::vector<node> children{tm2.child.getChildren()};
+    for (auto &&child : children){
         tm2.child.forge(schedule(child));
     }
+
     return tm2;
 }
 
 node schedule(node account){
-    for (int i{}; i < 14; i++){
-        account.attributes = decontainerize(
-            wheel(
-                pruneIrrelevantTasks(
-                    // switch to decide which task gets scheduled on which day before sending it to wheel
-                    // basically prube irrevlevant task before wheel for better long term management
-                    // introduce 'demotions' in this meta pruner and cross-day info passing
-                    metaContainer{account.get("Goals")},
-                    calTime{i}
-                ).extract()
+    for (int i{}; i < 3; i++){// assignment failing
+        calTime tempor{i};
+        account.forge(
+            *account.get("Schedule").forge(
+                [tempor](node account){
+                    node temp{"\"" + tempor.strDate + "\"{}"};
+                    temp.attributes = decontainerize(
+                        wheel(
+                            pruneIrrelevantTasks(
+                                // switch to decide which task gets scheduled on which day before sending it to wheel
+                                // basically prube irrevlevant task before wheel for better long term management
+                                // introduce 'demotions' in this meta pruner and cross-day info passing
+                                metaContainer{account.get("Goals")},
+                                tempor
+                            ).extract()
+                        )
+                    );
+
+                    std::cout << "pass: " << tempor.strDate << std::endl;
+
+                    return temp;
+                }(account)
             )
         );
     }
@@ -54,15 +69,20 @@ metaContainer wheel(metaContainer day){
     return day;
 }
 
-metaContainer collide(metaContainer day){// dysfunctional
-    for (std::size_t i{day.children.size()}; i != SIZE_MAX; i--){
-        int totalTimeUsed{day.children[i].updateTotalTime()+1};
+metaContainer collide(metaContainer day){
+    for (std::size_t i{day.children.size()-1}; i != SIZE_MAX; i--){//unsigned conversions should be correct
+        int totalTimeUsed{day.children[i].updateTotalTime()+1};// check if updateTotalTime is working properly
+        
+        if (day.scheduledChildren.empty()){
+            day.init(i, day.getTask().getStart()+1);
+            continue;    
+        }
 
         if (totalTimeUsed + day.getTask().getStart() < day.scheduledChildren.front().getTask().getStart()){
             day.init(i, day.getTask().getStart()+1);
         } else if (totalTimeUsed + day.scheduledChildren.back().getTask().getEnd() < day.getTask().getEnd()){
             day.init(i, day.scheduledChildren.back().getTask().getEnd());
-        } else {
+        } else if  (day.scheduledChildren.size() != 1){
             for (std::size_t iter{}; iter < day.scheduledChildren.size()-2; iter++){
                 if (totalTimeUsed + day.scheduledChildren[iter].getTask().getEnd() < day.scheduledChildren[iter+1].getTask().getStart()){
                     day.init(i, day.scheduledChildren[i].getTask().getEnd());
@@ -72,7 +92,7 @@ metaContainer collide(metaContainer day){// dysfunctional
         }
     }
 
-    //missing optimizations
+    // missing optimizations
     return day;
 }
 

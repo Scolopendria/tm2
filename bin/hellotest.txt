@@ -1,0 +1,32 @@
+"tm2"{
+	"person1"{
+		"Goals"{
+			"piano"{
+				"time"="30"
+				"timeMarginEnd"="10"
+				"date"="2022:6:28"
+				"subPiano"{
+					"time"="5"
+					"timeMarginEnd"="2"
+					"date"="2022:6:28"
+				}
+			}
+			"violin"{
+				"time"="45"
+				"timeMarginEnd"="10"
+				"date"="2022:6:28"
+			}
+		}
+		"Schedule"{
+			"2022:6:27"{
+			}
+			"2022:6:28"{
+				"0:3-31:13"="violin"
+				"1043:3-1250:9"="piano"
+				"1250:10-1260:12"="subPiano"
+			}
+			"2022:6:29"{
+			}
+		}
+	}
+}

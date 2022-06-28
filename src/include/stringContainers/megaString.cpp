@@ -7,6 +7,51 @@
 #include <fstream>
 #include <sstream>
 
+
+////// converters /////////////////////////
+// old-order functions
+std::string read(std::string s, std::string::size_type &i, bool t){
+    std::string identifier;
+    if (t) identifier += s[i];
+    i++;
+    while (i < s.length() && s[i] != '"') identifier += s[i++];
+    if (t) identifier += s[i];
+    i++;
+    return identifier;
+}
+
+std::string formattedData(std::string data){
+    bool gate{false};
+    int depth{};
+    std::string str{};
+    std::string::size_type i{};
+    
+    while(i < data.length()){
+        switch (data[i]){
+            case '"': str += read(data, i, true);
+            if (gate){
+                str += '\n';
+                for (int ctr = 0; ctr < depth; ctr++) str += '\t';
+                gate = false;
+            }
+            break;
+            case '{': str += "{\n"; i++; depth++;
+            for (int ctr = 0; ctr < depth; ctr++) str += '\t';
+            break;
+            case '}': str.pop_back(); str += "}\n"; i++; depth--;
+            for (int ctr = 0; ctr < depth; ctr++) str += '\t';
+            break;
+            case '=': str += data[i++]; gate = true;
+            break;
+            default: i++;
+        }
+    }
+
+    return str;
+}
+
+////////////////////////////////
+
 megaString::megaString(std::vector<std::string> commands){
     this->filename = commands[0];
     commands.erase(commands.begin());
@@ -18,7 +63,7 @@ megaString::megaString(std::vector<std::string> commands){
 
 megaString::~megaString(){
     std::ofstream file(filename);
-    file << this->child.refresh();
+    file << formattedData(this->child.refresh());
     file.close();
 }
 

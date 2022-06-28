@@ -5,6 +5,7 @@
 #include <string>
 #include <array>
 #include <vector>
+#include <iostream>
 
 node::node(){
     // do nothing
@@ -30,7 +31,7 @@ node* node::objectify(){
     auto read = [](const std::string data, package pack){
         pack.identifier = "";
         for (pack.i++; pack.i < data.length(); pack.i++){
-            if (data[pack.i] != '"') pack.identifier = pack.identifier + data[pack.i];
+            if (data[pack.i] != '"') pack.identifier += data[pack.i];
             else break;
         }
         //if (pack.i == data.length()) throwError("node::read(): File Overran");
@@ -147,9 +148,12 @@ node* node::forge(std::vector<node> children){
 }
 
 node node::get(std::string childIdentifier){
-    for (auto &&child : this->children) if (child.getName() == childIdentifier) return child;
-    this->forge("\"" + childIdentifier + "\"");
-    return this->children.back();
+    for (auto &&child : this->children){
+        if (child.getName() == childIdentifier){
+            return child;
+        }
+    }
+    return node{"\"" + childIdentifier + "\"{}"};
 }
 
 bool node::check(std::string childIdentifier){

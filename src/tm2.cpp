@@ -15,6 +15,6 @@ int main(int argc, char **argv){
         return commands;
     }()};
     tm2 = scheduler(tm2);
-    
+
     return 0;
 }
