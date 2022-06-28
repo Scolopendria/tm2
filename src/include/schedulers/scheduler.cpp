@@ -69,18 +69,27 @@ metaContainer wheel(metaContainer day){
     return day;
 }
 
-metaContainer collide(metaContainer day){
-    for (std::size_t i{day.children.size()-1}; i != SIZE_MAX; i--){//unsigned conversions should be correct
-        int totalTimeUsed{day.children[i].updateTotalTime()+1};// check if updateTotalTime is working properly
+metaContainer collide(metaContainer day){// collision error
+    for (std::size_t i{day.children.size()-1}; i != SIZE_MAX; i--){
+        int totalTimeUsed{day.children[i].updateTotalTime()};
+
+        if (totalTimeUsed > day.getTask().getEnd() - day.getTask().getStart()) continue;
         
         if (day.scheduledChildren.empty()){
-            day.init(i, day.getTask().getStart()+1);
+            day.init(i, day.getTask().getStart());
             continue;    
         }
 
+        /////////////////////
+
+        int time1{totalTimeUsed + day.scheduledChildren.back().getTask().getEnd()};
+        int timeEnd{day.getTask().getEnd()};
+
+        /////////////////////
+
         if (totalTimeUsed + day.getTask().getStart() < day.scheduledChildren.front().getTask().getStart()){
-            day.init(i, day.getTask().getStart()+1);
-        } else if (totalTimeUsed + day.scheduledChildren.back().getTask().getEnd() < day.getTask().getEnd()){
+            day.init(i, day.getTask().getStart());
+        } else if (totalTimeUsed + day.scheduledChildren.back().getTask().getEnd() <= day.getTask().getEnd()){
             day.init(i, day.scheduledChildren.back().getTask().getEnd());
         } else if  (day.scheduledChildren.size() != 1){
             for (std::size_t iter{}; iter < day.scheduledChildren.size()-2; iter++){

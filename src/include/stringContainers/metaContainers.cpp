@@ -77,14 +77,16 @@ std::string metaContainer::getFullname(){
 
 int metaContainer::updateTotalTime(){
     if (this->name == "self"){
-        totalTime = timeUsed;
+        this->totalTime = timeUsed;
+    } else {
+        this->totalTime = 0;
     }
 
     for (auto &child : this->children){// upgrade to hDev
         this->totalTime += child.updateTotalTime();
     }
 
-    for (auto &child : this->children){
+    for (auto &child : this->scheduledChildren){
         this->totalTime += child.updateTotalTime();;
     }
 
@@ -98,7 +100,7 @@ task metaContainer::getTask(){
 
 metaContainer* metaContainer::init(std::size_t childPosition, int start){
     // initialize task
-    this->children[childPosition].t = task{this->name, start, start + this->updateTotalTime()};
+    this->children[childPosition].t = task{this->name, start, start + this->children[childPosition].updateTotalTime()};
     // add to scheduled
     this->scheduledChildren.push_back(this->children[childPosition]);
     // delete from unscheduled
