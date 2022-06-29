@@ -61,7 +61,6 @@ class node{
 class metaContainer{
     private:
         int totalTime{};
-        int timeUsed{};// redundant?
         std::string name{};
         std::string fullname{};
         task t{std::string{}, int{}, int{}};
@@ -70,7 +69,7 @@ class metaContainer{
         metaContainer(node data, std::string parent);
         metaContainer(node data);// Overload
         metaContainer(std::string fullname, attributeContainer inheritAttributes);
-        metaContainer(std::vector<metaContainer> day);
+        metaContainer(std::vector<metaContainer> day, int currentTime);
         std::vector<metaContainer> children{};
         std::vector<metaContainer> scheduledChildren{};
         attributeContainer attributes{};
@@ -78,9 +77,10 @@ class metaContainer{
         std::string getFullname();
         task getTask();
         int updateTotalTime();
+        int getTotalTime();
         metaContainer* init(std::size_t childPosition, int start);
         metaContainer* uninit(std::size_t childPosition);
-        metaContainer extract();// utilities?
+        metaContainer extract(int currentTime);// utilities?
 };
 
 class megaString{

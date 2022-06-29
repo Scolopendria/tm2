@@ -1,31 +1,30 @@
 "tm2"{
 	"person1"{
 		"Goals"{
+			"violin"{
+				"time"="45"
+				"timeMarginEnd"="6"
+				"date"="2022:6:28"
+			}
 			"piano"{
 				"time"="30"
 				"timeMarginEnd"="10"
-				"date"="2022:6:28"
+				"date"="2022:6:29"
 				"subPiano"{
 					"time"="5"
-					"timeMarginEnd"="2"
+					"timeMarginEnd"="13"
 					"date"="2022:6:28"
 				}
 			}
-			"violin"{
-				"time"="45"
-				"timeMarginEnd"="10"
-				"date"="2022:6:28"
-			}
 		}
 		"Schedule"{
-			"2022:6:27"{
-			}
 			"2022:6:28"{
-				"0:0-0:55"="violin"
-				"0:55-1:35"="piano"
-				"1:35-1:42"="subPiano"
+				"20:3-20:48"="violin"
 			}
 			"2022:6:29"{
+				"0:0-0:30"="piano"
+			}
+			"2022:6:30"{
 			}
 		}
 	}

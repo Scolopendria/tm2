@@ -5,7 +5,8 @@
 #include <algorithm>
 #include <iostream>
 
-
+// birng back getTotalTime()
+//fix timeUsed
 ///// error handling ////////////////////
 
 int superstoi(std::string value, int defaultValue){// not final form
@@ -28,7 +29,6 @@ metaContainer::metaContainer(node data, std::string parent){
     this->name = data.getName();
     this->fullname = parent + ":" + this->name;
     this->attributes = data.attributes;
-    this->timeUsed = superstoi(this->attributes.get("time"), 30) + superstoi(this->attributes.get("timeMarginEnd"), 0);
     // *WARNING* No value check (MINVH)
     
     for (auto &&child : data.getChildren()){
@@ -43,13 +43,11 @@ metaContainer::metaContainer(node data){
     *this = metaContainer(data, "");
 }
 
-metaContainer::metaContainer(std::vector<metaContainer> day){
-    std::cout << "called" << std::endl;
+metaContainer::metaContainer(std::vector<metaContainer> day, int currentTime){
     this->name = "";
     this->fullname = "day";
     this->attributes.set("shellCast", "true");
-    this->timeUsed = 0;
-    this->t = task{"", 0, 1440};
+    this->t = task{"", currentTime, 1440};
 
     for (auto &&child : day){
         this->children.push_back(child);
@@ -62,7 +60,6 @@ metaContainer::metaContainer(std::string fullname, attributeContainer inheritAtt
     this->name = "self";
     this->fullname = fullname;
     this->attributes = inheritAttributes;
-    this->timeUsed = superstoi(this->attributes.get("time"), 30) + superstoi(this->attributes.get("timeMarginEnd"), 0);
     this->updateTotalTime();
     // *WARNING* No value check (MINVH)
 }
@@ -75,19 +72,26 @@ std::string metaContainer::getFullname(){
     return this->fullname;
 }
 
+int metaContainer::getTotalTime(){
+    return this->totalTime;
+}
+
 int metaContainer::updateTotalTime(){
     if (this->name == "self"){
-        this->totalTime = timeUsed;
-    } else {
-        this->totalTime = 0;
+        this->totalTime =
+            superstoi(this->attributes.get("time"), 30) +
+            superstoi(this->attributes.get("timeMarginEnd"), 0);
+        return this->totalTime;
     }
+    
+    this->totalTime = 0;
 
     for (auto &child : this->children){// upgrade to hDev
-        this->totalTime += child.updateTotalTime();
+        this->totalTime += child.updateTotalTime()+1;
     }
 
     for (auto &child : this->scheduledChildren){
-        this->totalTime += child.updateTotalTime();;
+        this->totalTime += child.updateTotalTime()+1;
     }
 
     return this->totalTime;
@@ -100,7 +104,15 @@ task metaContainer::getTask(){
 
 metaContainer* metaContainer::init(std::size_t childPosition, int start){
     // initialize task
-    this->children[childPosition].t = task{this->name, start, start + this->children[childPosition].updateTotalTime()};
+
+    //find better way to  do this
+
+    if (this->children[childPosition].getName() == "self"){
+        this->children[childPosition].t = task{this->name, start, start + superstoi(this->children[childPosition].attributes.get("time"), 30)};
+    } else{
+        this->children[childPosition].t = task{this->name, start, start + this->children[childPosition].updateTotalTime()};
+    }
+
     // add to scheduled
     this->scheduledChildren.push_back(this->children[childPosition]);
     // delete from unscheduled
@@ -125,7 +137,7 @@ metaContainer* metaContainer::uninit(std::size_t childPosition){
 }
 
 
-metaContainer metaContainer::extract(){// consider moving to converters or scheduler
+metaContainer metaContainer::extract(int currentTime){// consider moving to converters or scheduler
     std::vector<metaContainer> completeList{};
 
     for (std::size_t i{this->children.size()-1}; i != SIZE_MAX; i--){
@@ -139,7 +151,7 @@ metaContainer metaContainer::extract(){// consider moving to converters or sched
     }
 
     completeList.push_back(*this);
-    return metaContainer{completeList};
+    return metaContainer{completeList, currentTime};
 }
 
 std::vector<metaContainer> metaContainer::extractFreeRadicals(){

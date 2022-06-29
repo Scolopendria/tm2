@@ -9,7 +9,7 @@ megaString scheduler(megaString tm2);
 node schedule(node account);
 metaContainer wheel(metaContainer day);
 metaContainer collide(metaContainer day);
-metaContainer pruneIrrelevantTasks(metaContainer completeList, calTime cal);
+metaContainer pruneIrrelevantTasks(metaContainer completeList, std::string date);
 attributeContainer decontainerize(metaContainer day);
 
 megaString scheduler(megaString tm2){
@@ -35,8 +35,8 @@ node schedule(node account){
                                 // basically prube irrevlevant task before wheel for better long term management
                                 // introduce 'demotions' in this meta pruner and cross-day info passing
                                 metaContainer{account.get("Goals")},
-                                tempor
-                            ).extract()
+                                tempor.strDate
+                            ).extract(tempor.minute_t)
                         )
                     );
 
@@ -77,20 +77,13 @@ metaContainer collide(metaContainer day){// collision error
         
         if (day.scheduledChildren.empty()){
             day.init(i, day.getTask().getStart());
-            continue;    
+            continue;
         }
-
-        /////////////////////
-
-        int time1{totalTimeUsed + day.scheduledChildren.back().getTask().getEnd()};
-        int timeEnd{day.getTask().getEnd()};
-
-        /////////////////////
 
         if (totalTimeUsed + day.getTask().getStart() < day.scheduledChildren.front().getTask().getStart()){
             day.init(i, day.getTask().getStart());
-        } else if (totalTimeUsed + day.scheduledChildren.back().getTask().getEnd() <= day.getTask().getEnd()){
-            day.init(i, day.scheduledChildren.back().getTask().getEnd());
+        } else if (totalTimeUsed + day.scheduledChildren.back().getTask().getEnd() < day.getTask().getEnd()){
+            day.init(i, day.scheduledChildren.back().getTask().getEnd()+1);
         } else if  (day.scheduledChildren.size() != 1){
             for (std::size_t iter{}; iter < day.scheduledChildren.size()-2; iter++){
                 if (totalTimeUsed + day.scheduledChildren[iter].getTask().getEnd() < day.scheduledChildren[iter+1].getTask().getStart()){
@@ -105,13 +98,13 @@ metaContainer collide(metaContainer day){// collision error
     return day;
 }
 
-metaContainer pruneIrrelevantTasks(metaContainer completeList, calTime cal){
+metaContainer pruneIrrelevantTasks(metaContainer completeList, std::string date){
     // simplified version
     for (std::size_t i{completeList.children.size()-1}; i != SIZE_MAX; i--){
-        if (completeList.children[i].attributes.get("date") != cal.strDate){
+        if (completeList.children[i].attributes.get("date") != date){
             completeList.children.erase(completeList.children.begin() + i);
         } else {
-            pruneIrrelevantTasks(completeList.children[i], cal);
+            completeList.children[i] = pruneIrrelevantTasks(completeList.children[i], date);
         }
     }
 
@@ -121,7 +114,7 @@ metaContainer pruneIrrelevantTasks(metaContainer completeList, calTime cal){
 attributeContainer decontainerize(metaContainer day){
     attributeContainer scheduleBook{};
 
-    if (day.getName() == "self") scheduleBook.set(day.getTask().getFullStdTime(), day.getTask().getName());// redundant
+    if (day.getName() == "self") scheduleBook.set(day.getTask().getFullStdTime(), day.getTask().getName());
 
     for (auto &&child : day.scheduledChildren){
         scheduleBook.set(decontainerize(child).getList());
