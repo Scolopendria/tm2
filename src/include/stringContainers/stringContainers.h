@@ -6,14 +6,28 @@
 #include <vector>
 #include <array>
 
+class calTime{
+    public:
+        calTime();
+        calTime(int offset);
+        calTime* initialize(int offset);
+        int year{};
+        int month{};
+        int date{};
+        int weekday{};
+        int minute_t{};
+        std::string strDate{};
+        std::string baseDate{};
+};
+
 //utilities?
 class task{// any redundant members?
     private:
-        int startTime;
-        int endTime;
-        int timeUsed;
-        std::string name;
-        std::string stdTime;
+        int startTime{};
+        int endTime{};
+        int timeUsed{};
+        std::string name{};
+        std::string stdTime{};
     public:
         task(std::string taskName, int start, int end);
         int getStart();
@@ -42,7 +56,7 @@ class node{
         std::string data{};
         std::string name{};
         std::vector<node> children{};
-        node* objectify();// a bit of a mess
+        node* objectify();
     public:
         node();
         node(std::string data);
@@ -59,26 +73,24 @@ class node{
 };
 
 class metaContainer{
-    // inherent and implied attributes not set
     private:
         int totalTime{};
         std::string name{};
         std::string fullname{};
-        task t{std::string{}, int{}, int{}};
+        task t{"", 0, 0};
         std::vector<metaContainer> extractFreeRadicals();
     public:
-        metaContainer(node data, std::string parent);
-        metaContainer(node data);// Overload
-        metaContainer(std::string fullname, attributeContainer inheritAttributes);
-        metaContainer(std::vector<node> day, int currentTime);
+        metaContainer(node data, calTime tempor, std::string parent, attributeContainer attributes);
+        metaContainer(std::string parent, attributeContainer attributes);
+        metaContainer(std::vector<node> day, calTime tempor);
         std::vector<metaContainer> children{};
         std::vector<metaContainer> scheduledChildren{};
         attributeContainer attributes{};
         std::string getName();
         std::string getFullname();
         task getTask();
-        int updateTotalTime();
         int getTotalTime();
+        int updateTotalTime();
         metaContainer* initialize(std::size_t childPosition, int start);
         metaContainer* uninitilize(std::size_t childPosition);
         metaContainer* extract();// utilities?

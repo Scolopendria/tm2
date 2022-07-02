@@ -3,8 +3,8 @@
 
 #include "stringContainers.h"
 #include <algorithm>
-#include <iostream>
-
+#include <chrono>
+#include <random>
 ///// error handling ////////////////////
 
 int superstoi(std::string value, int defaultValue){// not final form
@@ -23,43 +23,117 @@ int superstoi(std::string value, int defaultValue){// not final form
 
 ////////////////////////
 
-metaContainer::metaContainer(node data, std::string parent){
+calTime::calTime(){
+    std::stringstream ss{};
+    auto now{std::chrono::system_clock::to_time_t(
+        std::chrono::system_clock::now()
+    )};
+    auto ltm{std::localtime(&now)};
+    this->year = 1900 + ltm->tm_year;
+    this->month = 1 + ltm->tm_mon;
+    this->date = ltm->tm_mday;
+    ss << year << ":" << month << ":" << date;
+    this->baseDate = ss.str();
+};
+
+
+calTime::calTime(int offset){
+    *this = calTime{};
+    this->initialize(offset);
+}
+
+calTime* calTime::initialize(int offset){
+    std::stringstream ss{};
+    auto now{std::chrono::system_clock::to_time_t(
+        std::chrono::system_clock::now() + std::chrono::days(offset)
+    )};
+    auto ltm{std::localtime(&now)};
+    this->year = 1900 + ltm->tm_year;
+    this->month = 1 + ltm->tm_mon;
+    this->date = ltm->tm_mday;
+    this->weekday = ltm->tm_wday;
+    this->minute_t = (ltm->tm_hour * 60) + ltm->tm_min;
+    ss << year << ":" << month << ":" << date;
+    this->strDate = ss.str();
+    this->minute_t *= (!offset);
+    return this;
+};
+
+metaContainer::metaContainer(node data, calTime tempor, std::string parent, attributeContainer attributes){
     this->name = data.getName();
     this->fullname = parent + ":" + this->name;
+    if (parent == "") this->fullname = this->name;
+
     this->attributes = data.attributes;
+    // set inherited and implied attributes
+    // MINVH and other erroi handling
+    if (this->attributes.get("date") == "NULL"){
+        if (attributes.get("date") == "NULL"){
+            this->attributes.set("date", tempor.baseDate);
+        } else {
+            this->attributes.set("date", attributes.get("date"));
+        }
+    }
+
+    if (this->attributes.get("priority") == "NULL"){
+        if (attributes.get("priority") == "NULL"){
+            this->attributes.set("priority", "70");
+        } else {
+            this->attributes.set("priority", attributes.get("priority"));
+        }
+    }
+
+    if (this->attributes.get("time") == "NULL"){// change to isNumber
+        this->attributes.set("time", "30");
+    }
+
+    if (this->attributes.get("start") != "NULL"){// change to isNumber
+        this->attributes.set("bounded", "true");
+    }
+    ///
     
     for (auto &&child : data.getChildren()){
-        this->children.push_back(metaContainer(child, this->fullname));
+        this->children.push_back(metaContainer(child, tempor, this->fullname, this->attributes));
     }
+
+    // mix up order randomly for better result distribution
+    std::shuffle(
+        this->children.begin(),
+        this->children.end(),
+        std::default_random_engine(std::chrono::system_clock::now()
+            .time_since_epoch()
+            .count()
+        )
+    );
 
     if (this->name != "self" && this->attributes.get("shellCast") != "true"){
         this->children.push_back(metaContainer{this->fullname, this->attributes});
     }
-
-    this->updateTotalTime();
 }
 
-metaContainer::metaContainer(node data){
-    *this = metaContainer(data, "");
-}
-
-metaContainer::metaContainer(std::vector<node> day, int currentTime){
-    this->name = "";
+metaContainer::metaContainer(std::vector<node> day, calTime tempor){
+    std::srand(std::time(nullptr));
     this->fullname = "day";
-    this->attributes.set("shellCast", "true");
-    this->t = task{"", currentTime, 1440};
+    this->t = task{"", tempor.minute_t, 1440};
 
     for (auto &&child : day){
-        this->children.push_back(metaContainer{child});
+        this->children.push_back(metaContainer{child, tempor, "", attributeContainer{}});
     }
 
-    this->updateTotalTime();
+    std::shuffle(
+        this->children.begin(),
+        this->children.end(),
+        std::default_random_engine(std::chrono::system_clock::now()
+            .time_since_epoch()
+            .count()
+        )
+    );
 }
 
-metaContainer::metaContainer(std::string fullname, attributeContainer inheritAttributes){
+metaContainer::metaContainer(std::string parent, attributeContainer attributes){
     this->name = "self";
-    this->fullname = fullname;
-    this->attributes = inheritAttributes;
+    this->fullname = parent;
+    this->attributes = attributes;
 }
 
 std::string metaContainer::getName(){
@@ -83,6 +157,7 @@ int metaContainer::updateTotalTime(){
         this->totalTime =
             superstoi(this->attributes.get("time"), 30) +
             superstoi(this->attributes.get("timeMarginEnd"), 0);
+            // error checks will be handled natively during constuction
         return this->totalTime;
     }
     
