@@ -20,76 +20,59 @@ node* node::objectify(){
 
     class package{
         public:
-            std::string identifier{};
+            std::string id{};
             std::string::size_type i{};
-            package(std::string identifier, std::string::size_type i){
-                this->identifier = identifier;
+            package(std::string id, std::string::size_type i){
+                this->id = id;
                 this->i = i;
             };
     };
     
     auto read = [](const std::string data, package pack){
-        pack.identifier = "";
+        pack.id = "";
         for (pack.i++; pack.i < data.length(); pack.i++){
-            if (data[pack.i] != '"') pack.identifier += data[pack.i];
+            if (data[pack.i] != '"') pack.id += data[pack.i];
             else break;
         }
-        //if (pack.i == data.length()) throwError("node::read(): File Overran");
         pack.i++;
+
         return pack;
     };
-
-    auto cut = [](std::string data, const std::array<std::string::size_type, 2> pincer){
-        return data.substr(pincer[0], pincer[1]);
-    };
-
-    char p{};
-    int depth{};
-    std::array<std::string, 2> ID_pair{};
-    std::array<std::string::size_type, 2> pincer{};
-
-    package pack{read(this->data, package{"", 0})};
-    this->name = pack.identifier;
-    pack.i++;
     
+    package pack = read(this->data, package{"", 0});
+    this->name = pack.id;
+
+    pack.i++;
     while (pack.i < this->data.length() - 1){
-        pincer[0] = pack.i;
+        std::size_t pincer{pack.i};
         pack = read(this->data, pack);
-        ID_pair[0] = pack.identifier;
-        p = this->data[pack.i++];
+        std::string id{pack.id};
+        char p{this->data[pack.i]};
+
+        pack.i++;
         if (p == '='){
             pack = read(this->data, pack);
-            ID_pair[1] = pack.identifier;
-            this->attributes.set(ID_pair);
+            this->attributes.set(id, pack.id);
         } else if (p == '{'){
-            depth = 1;
-            while (pack.i < this->data.length() && depth != 0){
+            int depth = 1;
+            int x = data.length();
+            while (pack.i < this->data.length() && depth){
                 switch (this->data[pack.i]){
-                    case '"':
-                        pack = read(this->data, pack);
-                        break;
-                    case '{':
-                        depth++;
-                        pack.i++;
-                        break;
-                    case '}':
-                        depth--;
-                        pack.i++;
-                        break;
-                    case '=':
-                        pack.i++;
-                        break;
-                    default:
-                        pack.i++;
-                        //throwError("verStr::objectify(): Unexpected character: " + String[i]);
+                    case '"': pack = read(this->data, pack);
+                    break;
+                    case '{': depth++; pack.i++;
+                    break;
+                    case '}': depth--; pack.i++;
+                    break;
+                    case '=': pack.i++;
+                    break;
+                    default: pack.i++;// throw error
                 }
             }
-            if (depth == 0){
-                pincer[1] = pack.i;
-                forge(cut(this->data, pincer));
-            }
+            // guard against overflow
+            if (!depth) this->forge(this->data.substr(pincer, pack.i-pincer));
         }
-    }// MINVH
+    }
 
     return this;
 }

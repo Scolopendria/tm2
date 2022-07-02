@@ -59,6 +59,7 @@ class node{
 };
 
 class metaContainer{
+    // inherent and implied attributes not set
     private:
         int totalTime{};
         std::string name{};
@@ -69,7 +70,7 @@ class metaContainer{
         metaContainer(node data, std::string parent);
         metaContainer(node data);// Overload
         metaContainer(std::string fullname, attributeContainer inheritAttributes);
-        metaContainer(std::vector<metaContainer> day, int currentTime);
+        metaContainer(std::vector<node> day, int currentTime);
         std::vector<metaContainer> children{};
         std::vector<metaContainer> scheduledChildren{};
         attributeContainer attributes{};
@@ -78,9 +79,9 @@ class metaContainer{
         task getTask();
         int updateTotalTime();
         int getTotalTime();
-        metaContainer* init(std::size_t childPosition, int start);
-        metaContainer* uninit(std::size_t childPosition);
-        metaContainer extract(int currentTime);// utilities?
+        metaContainer* initialize(std::size_t childPosition, int start);
+        metaContainer* uninitilize(std::size_t childPosition);
+        metaContainer* extract();// utilities?
 };
 
 class megaString{

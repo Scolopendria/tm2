@@ -80,8 +80,8 @@ std::string megaString::getFile(const std::string filename){// utilities
 }
 
 std::string megaString::strip(const std::string data){// place in converters?? sub of validateFile
-    //MINVH
-    //scoping not complete
+    // MINVH
+    // scoping not complete
     // does not guarantee objectify valid data
     int depth{};
     std::string str{};
@@ -91,12 +91,12 @@ std::string megaString::strip(const std::string data){// place in converters?? s
         switch (data[i]){
         case '"':
             str += data[i++];
+
             while(i < data.length()){
                 if (data[i] != '"') str += data[i++];
                 else break;
             }
             if (i == data.length()) /*throwError("File Overran")*/;
-            // Does not handle special characters very well
 
             str += data[i++];
             break;
@@ -106,7 +106,8 @@ std::string megaString::strip(const std::string data){// place in converters?? s
             break;
         case '}':
             str += data[i++];
-            if (--depth < 1) return str;
+            depth--;
+            if (!depth) return str;
             break;
         case '=':
             str += data[i++];

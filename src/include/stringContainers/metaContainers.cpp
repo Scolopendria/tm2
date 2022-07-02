@@ -5,8 +5,6 @@
 #include <algorithm>
 #include <iostream>
 
-// birng back getTotalTime()
-//fix timeUsed
 ///// error handling ////////////////////
 
 int superstoi(std::string value, int defaultValue){// not final form
@@ -29,13 +27,15 @@ metaContainer::metaContainer(node data, std::string parent){
     this->name = data.getName();
     this->fullname = parent + ":" + this->name;
     this->attributes = data.attributes;
-    // *WARNING* No value check (MINVH)
     
     for (auto &&child : data.getChildren()){
         this->children.push_back(metaContainer(child, this->fullname));
     }
 
-    if (this->name != "self" && this->attributes.get("shellCast") != "true") this->children.push_back(metaContainer{this->fullname, this->attributes});
+    if (this->name != "self" && this->attributes.get("shellCast") != "true"){
+        this->children.push_back(metaContainer{this->fullname, this->attributes});
+    }
+
     this->updateTotalTime();
 }
 
@@ -43,14 +43,14 @@ metaContainer::metaContainer(node data){
     *this = metaContainer(data, "");
 }
 
-metaContainer::metaContainer(std::vector<metaContainer> day, int currentTime){
+metaContainer::metaContainer(std::vector<node> day, int currentTime){
     this->name = "";
     this->fullname = "day";
     this->attributes.set("shellCast", "true");
     this->t = task{"", currentTime, 1440};
 
     for (auto &&child : day){
-        this->children.push_back(child);
+        this->children.push_back(metaContainer{child});
     }
 
     this->updateTotalTime();
@@ -60,8 +60,6 @@ metaContainer::metaContainer(std::string fullname, attributeContainer inheritAtt
     this->name = "self";
     this->fullname = fullname;
     this->attributes = inheritAttributes;
-    this->updateTotalTime();
-    // *WARNING* No value check (MINVH)
 }
 
 std::string metaContainer::getName(){
@@ -74,6 +72,10 @@ std::string metaContainer::getFullname(){
 
 int metaContainer::getTotalTime(){
     return this->totalTime;
+}
+
+task metaContainer::getTask(){
+    return this->t;
 }
 
 int metaContainer::updateTotalTime(){
@@ -97,25 +99,28 @@ int metaContainer::updateTotalTime(){
     return this->totalTime;
 }
 
-task metaContainer::getTask(){
-    return this->t;
-}
+metaContainer* metaContainer::initialize(std::size_t childPosition, int start){
+    //no guarantee scheduling, kick from lowest priority
+    int upperBound{};
 
-
-metaContainer* metaContainer::init(std::size_t childPosition, int start){
     // initialize task
-
-    //find better way to  do this
-
     if (this->children[childPosition].getName() == "self"){
-        this->children[childPosition].t = task{this->name, start, start + superstoi(this->children[childPosition].attributes.get("time"), 30)};
-    } else{
-        this->children[childPosition].t = task{this->name, start, start + this->children[childPosition].updateTotalTime()};
+        this->children[childPosition].t =
+            task{
+                this->children[childPosition].fullname,
+                start,
+                start + superstoi(this->children[childPosition].attributes.get("time"), 30)
+            };
+    } else {
+        this->children[childPosition].t =
+            task{this->children[childPosition].fullname,
+            start,
+            start + this->children[childPosition].updateTotalTime()
+        };
     }
 
-    // add to scheduled
+    // add to scheduled and delete from unscheduled
     this->scheduledChildren.push_back(this->children[childPosition]);
-    // delete from unscheduled
     this->children.erase(this->children.begin() + childPosition);
 
     std::sort(
@@ -126,10 +131,107 @@ metaContainer* metaContainer::init(std::size_t childPosition, int start){
         }
     );
 
+    // optimize free space // utilities??
+    // todo: optimize order based on time length and order (after) magnetism
+
+    std::vector<int> boundedChildrenList;
+    for (std::size_t i{}; i < this->scheduledChildren.size(); i++){
+        if (this->scheduledChildren[i].attributes.get("start") != "NULL"){
+            boundedChildrenList.push_back(i);
+        }
+    }
+
+    if (boundedChildrenList.empty()){
+        upperBound = this->getTask().getStart();
+        for (std::size_t i{}; i < this->scheduledChildren.size(); i++){
+            if (// equivalent to the line that is 12 lines after this line (line 224)
+                upperBound + this->scheduledChildren[i].getTask().getTimeUsed()+1 >
+                this->getTask().getEnd()
+            ) {
+                this->uninitilize(i--);
+                continue;
+            }
+
+            this->scheduledChildren[i].t =
+                task{
+                    this->scheduledChildren[i].getTask().getName(),
+                    upperBound,
+                    upperBound + this->scheduledChildren[i].getTask().getTimeUsed()
+                };
+            
+            upperBound = this->scheduledChildren[i].getTask().getEnd()+1;
+        }
+        return this;
+    }
+
+    upperBound = this->getTask().getStart();
+    for (std::size_t i{}; i < boundedChildrenList.front(); i++){
+        if (
+            upperBound + this->scheduledChildren[i].getTask().getTimeUsed()+1 >
+            this->scheduledChildren[boundedChildrenList.front()].getTask().getStart()
+        ) {
+            this->uninitilize(i--);
+            continue;
+        }
+
+        this->scheduledChildren[i].t =
+            task{
+                this->scheduledChildren[i].getTask().getName(),
+                upperBound,
+                upperBound + this->scheduledChildren[i].getTask().getTimeUsed()
+            };
+        
+        upperBound = this->scheduledChildren[i].getTask().getEnd()+1;
+    }
+
+    upperBound = this->scheduledChildren[boundedChildrenList.back()].getTask().getEnd()+1;
+    for (std::size_t i{boundedChildrenList.back()+(std::size_t)1}; i < this->scheduledChildren.size(); i++){
+        if (
+            upperBound + this->scheduledChildren[i].getTask().getTimeUsed()+1 >
+            this->getTask().getEnd()
+        ) {
+            uninitilize(i--);
+            continue;
+        }
+
+        this->scheduledChildren[i].t =
+            task{
+                this->scheduledChildren[i].getTask().getName(),
+                upperBound,
+                upperBound + this->scheduledChildren[i].getTask().getTimeUsed()
+            };
+        
+        upperBound = this->scheduledChildren[i].getTask().getEnd()+1;
+    }
+
+    if (boundedChildrenList.size() != 1){
+        for (std::size_t i{}; i < boundedChildrenList.size()-2; i++){
+            upperBound = this->scheduledChildren[i].getTask().getEnd()+1;
+            for (std::size_t j{boundedChildrenList[i]+(std::size_t)1}; j < boundedChildrenList[i+1]; j++){
+                if (
+                    upperBound + this->scheduledChildren[j].getTask().getTimeUsed()+1 >
+                    this->scheduledChildren[boundedChildrenList[i+1]].getTask().getStart()
+                ) {
+                    uninitilize(j--);
+                    continue;
+                }
+
+                this->scheduledChildren[j].t =
+                    task{
+                        this->scheduledChildren[j].getTask().getName(),
+                        upperBound,
+                        upperBound + this->scheduledChildren[j].getTask().getTimeUsed()
+                    };
+                
+                upperBound = this->scheduledChildren[j].getTask().getEnd()+1;
+            }
+        }
+    }
+
     return this;
 }
 
-metaContainer* metaContainer::uninit(std::size_t childPosition){
+metaContainer* metaContainer::uninitilize(std::size_t childPosition){
     this->scheduledChildren[childPosition].t = task{this->name, 0, 0};
     this->children.push_back(this->scheduledChildren[childPosition]);
     this->scheduledChildren.erase(this->scheduledChildren.begin() + childPosition);
@@ -137,21 +239,26 @@ metaContainer* metaContainer::uninit(std::size_t childPosition){
 }
 
 
-metaContainer metaContainer::extract(int currentTime){// consider moving to converters or scheduler
-    std::vector<metaContainer> completeList{};
+metaContainer* metaContainer::extract(){// consider moving to converters or scheduler
+    std::vector<metaContainer> completeRadicalList{};
 
     for (std::size_t i{this->children.size()-1}; i != SIZE_MAX; i--){
-        const std::vector<metaContainer> radicals = this->children[i].extractFreeRadicals();
-        completeList.insert(completeList.end(), radicals.begin(), radicals.end());
+        const std::vector<metaContainer> radicalList = this->children[i].extractFreeRadicals();
+        completeRadicalList.insert(completeRadicalList.end(), radicalList.begin(), radicalList.end());
 
         if (this->children[i].attributes.get("freeRadical") == "true"){
-            completeList.push_back(this->children[i]);
+            completeRadicalList.push_back(this->children[i]);
             this->children.erase(this->children.begin() + i);
         }
     }
 
-    completeList.push_back(*this);
-    return metaContainer{completeList, currentTime};
+    for (auto &&child : completeRadicalList){
+        this->children.push_back(child);
+    }
+
+    this->updateTotalTime();
+
+    return this;
 }
 
 std::vector<metaContainer> metaContainer::extractFreeRadicals(){

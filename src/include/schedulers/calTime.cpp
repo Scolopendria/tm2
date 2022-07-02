@@ -8,7 +8,7 @@ class calTime{
     public:
         calTime();
         calTime(int offset);
-        calTime* init(int offset);
+        calTime* initialize(int offset);
         int year{};
         int month{};
         int date{};
@@ -33,11 +33,11 @@ calTime::calTime(){
 
 
 calTime::calTime(int offset){
-    calTime();
-    this->init(offset);
+    *this = calTime{};
+    this->initialize(offset);
 }
 
-calTime* calTime::init(int offset){
+calTime* calTime::initialize(int offset){
     std::stringstream ss{};
     auto now{std::chrono::system_clock::to_time_t(
         std::chrono::system_clock::now() + std::chrono::days(offset)
