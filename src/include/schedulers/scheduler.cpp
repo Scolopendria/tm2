@@ -76,12 +76,25 @@ metaContainer collide(metaContainer day){
     for (std::size_t i{day.children.size()-1}; i != SIZE_MAX; i--){
         const int totalTimeUsed{day.children[i].updateTotalTime()};
         const bool bounded{day.children[i].attributes.get("bounded") == "true"};
+        const bool orderBounded{day.children[i].attributes.get("orderBounded") == "true"};
         const int start{
             [bounded](int start){
                 if (!bounded) return -1;
                 return start;
             }(superstoi(day.children[i].attributes.get("start"), -1))
         };
+        const std::size_t targetIndex{
+            [orderBounded](metaContainer day, std::string targetName){
+                if (!orderBounded) return SIZE_MAX;
+                for (std::size_t j{}; j < day.scheduledChildren.size(); j++){
+                    if (day.scheduledChildren[j].getName() == targetName){
+                        return j;
+                    }
+                }
+                return SIZE_MAX;
+            }(day, day.children[i].attributes.get("after"))
+        };
+
         std::vector<int> boundedList;
         for (std::size_t j{}; j < day.scheduledChildren.size(); j++){
             if (day.scheduledChildren[j].attributes.get("bounded") == "true"){
@@ -90,10 +103,13 @@ metaContainer collide(metaContainer day){
         }
 
         if (totalTimeUsed > day.getTask().getEnd() - day.getTask().getStart()) continue;
+        if (orderBounded && targetIndex == SIZE_MAX) continue;
 
         if (boundedList.empty()){
             if (bounded){
-                day.initialize(i, start);
+                if (day.getTask().getStart() <= start){
+                    day.initialize(i, start);
+                }
                 continue;
             }
 
@@ -103,6 +119,11 @@ metaContainer collide(metaContainer day){
             }
 
             if (totalTimeUsed < availableTime){
+                if (orderBounded){
+                    day.initialize(i, day.scheduledChildren[targetIndex].getTask().getEnd()+1);
+                    continue;
+                }
+
                 day.initialize(i, day.getTask().getStart());
                 continue;
             }
@@ -126,21 +147,49 @@ metaContainer collide(metaContainer day){
             }
         } else {
             int availableTime{day.scheduledChildren[boundedList.front()].getTask().getStart() - day.getTask().getStart()-1};
-            for (std::size_t j{}; j < boundedList.front(); j++){
+            if (orderBounded){
+                if (targetIndex >= boundedList.front()) continue;
+                availableTime =
+                    day.scheduledChildren[targetIndex].getTask().getStart()-1 -
+                    day.scheduledChildren[boundedList.front()].getTask().getStart();
+            }
+
+            for (std::size_t j{targetIndex+1}; j < boundedList.front(); j++){
                 availableTime -= day.scheduledChildren[j].getTotalTime();
             }
 
             if (totalTimeUsed < availableTime){
+                if (orderBounded){
+                    day.initialize(i, day.scheduledChildren[targetIndex].getTask().getEnd()+1);
+                    continue;
+                }
                 day.initialize(i, day.getTask().getStart());
                 continue;
             }
 
             availableTime = day.getTask().getEnd() - day.scheduledChildren[boundedList.back()].getTask().getEnd()-1;
-            for (std::size_t j{boundedList.back()+(std::size_t)1}; j < day.scheduledChildren.size(); j++){
+            if(orderBounded){
+                if (targetIndex < boundedList.back()) continue;
+                availableTime = day.getTask().getEnd() - day.scheduledChildren[targetIndex].getTask().getEnd()-1;
+            }
+
+            for (
+                std::size_t j{
+                    bounded ?
+                    targetIndex + (std::size_t)1 :
+                    boundedList.back() + (std::size_t)1
+                };
+                j < day.scheduledChildren.size();
+                j++
+            ) {
                 availableTime -= day.scheduledChildren[j].getTotalTime();
             }
 
             if (totalTimeUsed < availableTime){
+                if (orderBounded){
+                    day.initialize(i, day.scheduledChildren[targetIndex].getTask().getEnd()+1);
+                    continue;
+                }
                 day.initialize(i, day.scheduledChildren[boundedList.back()].getTask().getEnd()+1);
                 continue;
             }
@@ -182,7 +231,7 @@ metaContainer demote(metaContainer day){
     for (std::size_t i{day.children.size()-1}; i != SIZE_MAX; i--){
         day.children[i].attributes.set(
             "priority",
-            std::to_string((int)(std::stof(day.children[i].attributes.get("priority")) * (float)0.78))
+            std::to_string((int)(std::stof(day.children[i].attributes.get("priority")) * (float)0.93))
         );                       // MINVH but error checks shoiuld be handled during construction
 
         if (std::stoi(day.children[i].attributes.get("priority")) < (std::rand() % 60 + 20)){

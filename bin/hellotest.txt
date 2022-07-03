@@ -21,16 +21,29 @@
 				"start"="1020"
 				"date"="2022:7:3"
 			}
+			"softBoundsDiscovery"{
+				"after"="block"
+				"date"="2022:7:4"
+			}
+			"block"{
+				"date"="2022:7:4"
+				"start"="830"
+			}
+			"intrusiveBoundedElement"{
+				"date"="2022:7:4"
+				"start"="1000"
+			}
 		}
 		"Schedule"{
 			"2022:7:2"{
-				"15:0-15:45"="violin"
 			}
 			"2022:7:3"{
 				"16:40-17:10"="piano"
 				"17:11-17:16"="piano:subPiano"
 			}
 			"2022:7:4"{
+				"13:50-14:20"="block"
+				"16:40-17:10"="intrusiveBoundedElement"
 			}
 		}
 	}

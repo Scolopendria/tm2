@@ -90,6 +90,10 @@ metaContainer::metaContainer(node data, calTime tempor, std::string parent, attr
     if (this->attributes.get("start") != "NULL"){// change to isNumber
         this->attributes.set("bounded", "true");
     }
+
+    if (this->attributes.get("after") != "NULL"){
+        this->attributes.set("orderBounded", "true");
+    }
     ///
     
     for (auto &&child : data.getChildren()){
@@ -134,6 +138,10 @@ metaContainer::metaContainer(std::string parent, attributeContainer attributes){
     this->name = "self";
     this->fullname = parent;
     this->attributes = attributes;
+
+    // filter relative traits
+
+    this->attributes.deleteAttribute("orderBounded")->deleteAttribute("after");
 }
 
 std::string metaContainer::getName(){
