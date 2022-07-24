@@ -59,12 +59,19 @@ calTime* calTime::initialize(int offset){
     return this;
 };
 
-metaContainer::metaContainer(node data, calTime tempor, std::string parent, attributeContainer attributes){
+metaContainer::metaContainer(
+    node data,
+    calTime tempor,
+    std::string parent,
+    attributeContainer attributes,
+    listContainer lists
+){
     this->name = data.getName();
     this->fullname = parent + ":" + this->name;
     if (parent == "") this->fullname = this->name;
 
     this->attributes = data.attributes;
+    this->lists = data.lists;
     // set inherited and implied attributes
     // MINVH and other erroi handling
     if (this->attributes.get("date") == "NULL"){
@@ -97,21 +104,20 @@ metaContainer::metaContainer(node data, calTime tempor, std::string parent, attr
     ///
     
     for (auto &&child : data.getChildren()){
-        this->children.push_back(metaContainer(child, tempor, this->fullname, this->attributes));
+        this->children.push_back(metaContainer(child, tempor, this->fullname, this->attributes, this->lists));
     }
 
     // mix up order randomly for better result distribution
     std::shuffle(
         this->children.begin(),
         this->children.end(),
-        std::default_random_engine(std::chrono::system_clock::now()
-            .time_since_epoch()
-            .count()
+        std::default_random_engine(
+            std::chrono::system_clock::now().time_since_epoch().count()
         )
     );
 
     if (this->name != "self" && this->attributes.get("shellCast") != "true"){
-        this->children.push_back(metaContainer{this->fullname, this->attributes});
+        this->children.push_back(metaContainer{this->fullname, this->attributes, this->lists});
     }
 }
 
@@ -121,23 +127,23 @@ metaContainer::metaContainer(std::vector<node> day, calTime tempor){
     this->t = task{"", tempor.minute_t, 1440};
 
     for (auto &&child : day){
-        this->children.push_back(metaContainer{child, tempor, "", attributeContainer{}});
+        this->children.push_back(metaContainer{child, tempor, "", attributeContainer{}, listContainer{}});
     }
 
     std::shuffle(
         this->children.begin(),
         this->children.end(),
-        std::default_random_engine(std::chrono::system_clock::now()
-            .time_since_epoch()
-            .count()
+        std::default_random_engine(
+            std::chrono::system_clock::now().time_since_epoch().count()
         )
     );
 }
 
-metaContainer::metaContainer(std::string parent, attributeContainer attributes){
+metaContainer::metaContainer(std::string parent, attributeContainer attributes, listContainer lists){
     this->name = "self";
     this->fullname = parent;
     this->attributes = attributes;
+    this->lists = lists;
 
     // filter relative traits
 

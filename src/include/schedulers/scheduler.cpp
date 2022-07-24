@@ -154,8 +154,8 @@ metaContainer collide(metaContainer day){
                     day.scheduledChildren[boundedList.front()].getTask().getStart();
             }
 
-            for (std::size_t j{targetIndex+1}; j < boundedList.front(); j++){
-                availableTime -= day.scheduledChildren[j].getTotalTime();
+            for (std::size_t j{targetIndex+1}; j < boundedList.front(); j++){// unsure if j is properly set
+                availableTime -= day.scheduledChildren[j].getTotalTime(); 
             }
 
             if (totalTimeUsed < availableTime){

@@ -53,7 +53,10 @@ node* node::objectify(){
         if (p == '='){
             pack = read(this->data, pack);
             this->attributes.set(id, pack.id);
-        } else if (p == '{'){
+            continue;
+        }
+        
+        if (p == '{'){
             int depth = 1;
             int x = data.length();
             while (pack.i < this->data.length() && depth){
@@ -64,13 +67,34 @@ node* node::objectify(){
                     break;
                     case '}': depth--; pack.i++;
                     break;
-                    case '=': pack.i++;
+                    case '=':
+                    case '[':
+                    case ']':
+                        pack.i++;
                     break;
                     default: pack.i++;// throw error
                 }
             }
-            // guard against overflow
+            // guard against overflow (pack.i > data.length())
             if (!depth) this->forge(this->data.substr(pincer, pack.i-pincer));
+            continue;
+        }
+
+        if (p == '['){
+            this->lists.createList(id);
+            std::vector<std::string> values;
+            while (data[pack.i] == '"'){
+                pack = read(this->data, pack);
+                values.push_back(pack.id);
+            }
+
+            if (data[pack.i] != ']') {
+                std::cout << "objectify list formation irregularity: " << p << std::endl;
+            } else {
+                this->lists.set(id, values);
+            }
+            
+            pack.i++;
         }
     }
 
@@ -86,6 +110,14 @@ std::string node::refresh(){
 
     for (auto &&ID_pair : this->attributes.getList()){
         this->data = this->data + encapsulate(ID_pair[0]) + "=" + encapsulate(ID_pair[1]);
+    }
+
+    for (auto &&list__ : this->lists.getLists()){
+        this->data = this->data + encapsulate(list__.getName()) + '[';
+        for (auto &&value : list__.getValues()){
+            this->data = this->data + encapsulate(value);
+        }
+        this->data = this->data + ']';
     }
 
     for (auto &child : this->children){

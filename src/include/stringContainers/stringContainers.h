@@ -51,6 +51,33 @@ class attributeContainer{
         attributeContainer* deleteAttribute(std::string identifier);
 };
 
+class li{
+    private:
+        std::string name{};
+        std::vector<std::string> values;
+    public:
+        li(std::string name);
+        std::string getName();
+        std::string getValue(std::size_t iterator);
+        std::vector<std::string> getValues();
+        li* set(std::string value);
+        li* set(std::vector<std::string> values); 
+        li* deleteValue(std::string value);
+};
+
+class listContainer{
+    private:
+        std::vector<li> lists{};
+    public:
+        listContainer();
+        std::string get(std::string identifier, std::size_t iterator);
+        std::vector<li> getLists();
+        listContainer* set(std::string identifier, std::vector<std::string> values);
+        listContainer* set(std::string identifier, std::string value);// Overload
+        listContainer* createList(std::string identifier);
+        listContainer* deleteList(std::string identifier);
+};
+
 class node{
     private:
         std::string data{};
@@ -61,6 +88,7 @@ class node{
         node();
         node(std::string data);
         attributeContainer attributes{};
+        listContainer lists{};
         std::string refresh();
         std::string getName();
         std::vector<node> getChildren();
@@ -80,12 +108,13 @@ class metaContainer{
         task t{"", 0, 0};
         std::vector<metaContainer> extractFreeRadicals();
     public:
-        metaContainer(node data, calTime tempor, std::string parent, attributeContainer attributes);
-        metaContainer(std::string parent, attributeContainer attributes);
+        metaContainer(node data, calTime tempor, std::string parent, attributeContainer attributes, listContainer lists);
+        metaContainer(std::string parent, attributeContainer attributes, listContainer lists);
         metaContainer(std::vector<node> day, calTime tempor);
         std::vector<metaContainer> children{};
         std::vector<metaContainer> scheduledChildren{};
         attributeContainer attributes{};
+        listContainer lists{};
         std::string getName();
         std::string getFullname();
         task getTask();
@@ -110,6 +139,7 @@ class megaString{
 #include "megaString.cpp"
 #include "node.cpp"
 #include "attributeContainers.cpp"
+#include "listContainers.cpp"
 #include "metaContainers.cpp"
 #include "schedulerClasses.cpp"
 

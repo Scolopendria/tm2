@@ -21,7 +21,7 @@ std::string read(std::string s, std::string::size_type &i, bool t){
 }
 
 std::string formattedData(std::string data){
-    bool gate{false};
+    bool gate{false}, listGate{false};
     int depth{};
     std::string str{};
     std::string::size_type i{};
@@ -29,20 +29,32 @@ std::string formattedData(std::string data){
     while(i < data.length()){
         switch (data[i]){
             case '"': str += read(data, i, true);
-            if (gate){
+            if (listGate || gate){
                 str += '\n';
                 for (int ctr = 0; ctr < depth; ctr++) str += '\t';
                 gate = false;
             }
             break;
+
             case '{': str += "{\n"; i++; depth++;
             for (int ctr = 0; ctr < depth; ctr++) str += '\t';
             break;
+
             case '}': str.pop_back(); str += "}\n"; i++; depth--;
             for (int ctr = 0; ctr < depth; ctr++) str += '\t';
             break;
+
             case '=': str += data[i++]; gate = true;
             break;
+
+            case '[': str += "[\n"; i++; depth++; listGate = true;
+            for (int ctr = 0; ctr < depth; ctr++) str += '\t';
+            break;
+
+            case ']': str.pop_back(); str += "]\n"; i++; depth--; listGate = false;
+            for (int ctr = 0; ctr < depth; ctr++) str += '\t';
+            break;
+
             default: i++;
         }
     }
@@ -110,6 +122,8 @@ std::string megaString::strip(const std::string data){// place in converters?? s
             if (!depth) return str;
             break;
         case '=':
+        case '[':
+        case ']':
             str += data[i++];
             break;
         default: i++;
