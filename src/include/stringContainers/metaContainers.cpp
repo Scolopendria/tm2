@@ -98,6 +98,9 @@ metaContainer::metaContainer(
         this->attributes.set("bounded", "true");
     }
 
+    // band-aid 
+    this->attributes.set("bounded", "true");
+
     if (this->attributes.get("after") != "NULL"){
         this->attributes.set("orderBounded", "true");
     }
@@ -225,7 +228,7 @@ metaContainer* metaContainer::initialize(std::size_t childPosition, int start){
 
     std::vector<int> boundedChildrenList;
     for (std::size_t i{}; i < this->scheduledChildren.size(); i++){
-        if (this->scheduledChildren[i].attributes.get("start") != "NULL"){
+        if (this->scheduledChildren[i].attributes.get("bounded") != "NULL"){
             boundedChildrenList.push_back(i);
         }
     }
