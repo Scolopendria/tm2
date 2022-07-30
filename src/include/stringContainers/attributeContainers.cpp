@@ -14,11 +14,11 @@ attributeContainer::attributeContainer(std::vector<std::array<std::string, 2>> a
     this->attributes = attributes;
 }
 
-std::vector<std::array<std::string, 2>> attributeContainer::getList(){
+std::vector<std::array<std::string, 2>> attributeContainer::getList() const {
     return this->attributes;
 }
 
-std::string attributeContainer::get(std::string identifier){
+std::string attributeContainer::get(std::string identifier) const {
     for (auto &&ID_pair : this->attributes){
         if (ID_pair[0] == identifier) return ID_pair[1];
     }

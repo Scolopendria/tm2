@@ -150,19 +150,19 @@ metaContainer::metaContainer(std::string parent, attributeContainer attributes, 
     this->attributes.deleteAttribute("orderBounded")->deleteAttribute("after");
 }
 
-std::string metaContainer::getName(){
+std::string metaContainer::getName() const {
     return this->name;
 }
 
-std::string metaContainer::getFullname(){
+std::string metaContainer::getFullname() const {
     return this->fullname;
 }
 
-int metaContainer::getTotalTime(){
+int metaContainer::getTotalTime() const {
     return this->totalTime;
 }
 
-task metaContainer::getTask(){
+task metaContainer::getTask() const {
     return this->t;
 }
 

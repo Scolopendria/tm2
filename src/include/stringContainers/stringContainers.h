@@ -30,11 +30,11 @@ class task{// any redundant members?
         std::string stdTime{};
     public:
         task(std::string taskName, int start, int end);
-        int getStart();
-        int getEnd();
-        int getTimeUsed();
-        std::string getName();
-        std::string getFullStdTime();
+        int getStart() const;
+        int getEnd() const;
+        int getTimeUsed() const;
+        std::string getName() const;
+        std::string getFullStdTime() const;
 };
 
 class attributeContainer{
@@ -43,8 +43,8 @@ class attributeContainer{
     public:
         attributeContainer();
         attributeContainer(std::vector<std::array<std::string, 2>> attributes);
-        std::vector<std::array<std::string, 2>> getList();
-        std::string get(std::string identifier);
+        std::vector<std::array<std::string, 2>> getList() const;
+        std::string get(std::string identifier) const;
         attributeContainer* set(std::array<std::string, 2> ID_pair);
         attributeContainer* set(std::string identifier, std::string value);// Overload
         attributeContainer* set(std::vector<std::array<std::string, 2>> attributes);
@@ -57,9 +57,9 @@ class li{
         std::vector<std::string> values;
     public:
         li(std::string name);
-        std::string getName();
-        std::string getValue(std::size_t iterator);
-        std::vector<std::string> getValues();
+        std::string getName() const;
+        std::string getValue(std::size_t iterator) const;
+        std::vector<std::string> getValues() const;
         li* set(std::string value);
         li* set(std::vector<std::string> values); 
         li* deleteValue(std::string value);
@@ -70,8 +70,8 @@ class listContainer{
         std::vector<li> lists{};
     public:
         listContainer();
-        std::string get(std::string identifier, std::size_t iterator);
-        std::vector<li> getLists();
+        li get(std::string identifier) const;
+        std::vector<li> getLists() const;
         listContainer* set(std::string identifier, std::vector<std::string> values);
         listContainer* set(std::string identifier, std::string value);// Overload
         listContainer* createList(std::string identifier);
@@ -115,10 +115,10 @@ class metaContainer{
         std::vector<metaContainer> scheduledChildren{};
         attributeContainer attributes{};
         listContainer lists{};
-        std::string getName();
-        std::string getFullname();
-        task getTask();
-        int getTotalTime();
+        std::string getName() const;
+        std::string getFullname() const;
+        task getTask() const;
+        int getTotalTime() const;
         int updateTotalTime();
         metaContainer* initialize(std::size_t childPosition, int start);
         metaContainer* uninitilize(std::size_t childPosition);

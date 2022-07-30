@@ -7,15 +7,15 @@ li::li(std::string name){
     this->name = name;
 }
 
-std::string li::getName(){
+std::string li::getName() const {
     return this->name;
 }
 
-std::vector<std::string> li::getValues(){
+std::vector<std::string> li::getValues() const {
     return this->values;
 }
 
-std::string li::getValue(std::size_t iterator){
+std::string li::getValue(std::size_t iterator) const {
     if (iterator >= this->values.size()) return "NULL";
     return this->values[iterator];
 }
@@ -47,17 +47,17 @@ listContainer::listContainer(){
     return;
 }
 
-std::vector<li> listContainer::getLists(){
+std::vector<li> listContainer::getLists() const {
     return this->lists;
 }
 
-std::string listContainer::get(std::string identifier, std::size_t iterator){
-    for (auto &&list__ : this->lists){
+li listContainer::get(std::string identifier) const {
+    for (const auto list__ : this->lists){
         if (list__.getName() == identifier){
-            return list__.getValue(iterator);
+            return list__;
         }
     }
-    return "NULL";
+    return li{""};
 }
 
 listContainer* listContainer::set(std::string identifier, std::vector<std::string> values){

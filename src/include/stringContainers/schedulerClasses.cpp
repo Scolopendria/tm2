@@ -15,23 +15,23 @@ task::task(std::string taskName, int start, int end){
     this->stdTime = ss.str();
 }
 
-std::string task::getName(){
+std::string task::getName() const {
     return this->name;
 }
 
-std::string task::getFullStdTime(){
+std::string task::getFullStdTime() const {
     return this->stdTime;
 }
 
-int task::getStart(){
+int task::getStart() const {
     return this->startTime;
 }
 
-int task::getEnd(){
+int task::getEnd() const {
     return this->endTime;
 }
 
-int task::getTimeUsed(){
+int task::getTimeUsed() const {
     return this->timeUsed;
 }
 
