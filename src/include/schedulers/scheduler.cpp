@@ -60,7 +60,7 @@ metaContainer wheel(metaContainer day){
     // they do have different functional roles, though
     // schedule children
     while (!day.children.empty()){
-        day = collide(day);
+        day = chainCollide(day);
         day = demote(day);
     }
     // recursively schedule (spin through) scheduled-children
@@ -233,8 +233,8 @@ metaContainer chainCollide(metaContainer day){
         for (std::size_t iter{}; iter < feed.length(); iter++){
             if (feed[iter] == '-'){
                 return std::array<int, 2>{
-                    std::stoi(feed.substr(0, iter-1)),
-                    std::stoi(feed.substr(iter))
+                    std::stoi(feed.substr(0, iter)),
+                    std::stoi(feed.substr(iter+1))
                 };
             }
         }
@@ -246,7 +246,7 @@ metaContainer chainCollide(metaContainer day){
         const int totalTimeUsed{day.children[i].updateTotalTime()};// future proofing for task resizing
         if (totalTimeUsed > day.getTask().getEnd() - day.getTask().getStart()) continue;
 
-        const bool bounded{day.children[i].attributes.get("bounded") == "true"};
+        //const bool bounded{day.children[i].attributes.get("bounded") == "true"};
 
         std::vector<int> boundedList;
         for (std::size_t iter{}; iter < day.scheduledChildren.size(); iter++){
@@ -257,7 +257,8 @@ metaContainer chainCollide(metaContainer day){
 
         // empty start needs to be defaulted to FULLRANGE
         int k_hook{0};
-        for (int j{-1}; j < boundedList.size(); j++){
+        for (int j{-1}; j < (int)boundedList.size(); j++){
+            bool successfullyScheduled{false};
             const std::array<int, 2> bounds{
                 [j, boundedList, day](){
                     std::array<int, 2> prelimBounds{day.getTask().getStart(), day.getTask().getEnd()};
@@ -268,18 +269,39 @@ metaContainer chainCollide(metaContainer day){
             };
 
             while(k_hook < day.children[i].lists.get("start").getValues().size()){
+                const auto holder_startRange = startRange(day.children[i].lists.get("start").getValue(k_hook));
+                const int stop{};
                 if (startRange(day.children[i].lists.get("start").getValue(k_hook))[1] > bounds[0]){
-                    int start = std::max(bounds[0], startRange(day.children[i].lists.get("start").getValue(k_hook))[0]);
+                    int start{std::max(bounds[0], startRange(day.children[i].lists.get("start").getValue(k_hook))[0])};
                     if (start + totalTimeUsed < bounds[1]){
-                        // doSomething();
-                        break;// Success
+                        int excessTime{bounds[1] - start - totalTimeUsed};
+                        std::size_t l = [j, boundedList](){
+                            if (j != -1) return boundedList[j];
+                            return 0;
+                        }();
+                        std::size_t m = [j, boundedList, day](){
+                            if (j+1 != boundedList.size()) return (std::size_t)boundedList[j+1];
+                            return day.scheduledChildren.size();
+                        }();
+
+                        while(l < m && excessTime > 0){
+                            excessTime -=day.scheduledChildren[l].getTotalTime();
+                            l++;
+                        }
+                        
+                        if (excessTime > 0) {
+                            day.initialize(i, start);
+                            successfullyScheduled = true;
+                            break;
+                        }
                     };
                 }
 
                 k_hook++;
             }
 
-            if(k_hook < day.children[i].lists.get("start").getValues().size()) break;
+            if (successfullyScheduled) break;
+            if(k_hook >= day.children[i].lists.get("start").getValues().size()) break;
         }
     }
 

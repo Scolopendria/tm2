@@ -3,51 +3,29 @@
 		"Goals"{
 			"piano"{
 				"time"="30"
-				"start"="1000"
-				"timeMarginEnd"="10"
-				"date"="2022:7:3"
-				"subPiano"{
-					"time"="5"
-					"timeMarginEnd"="15"
-					"start"[
-						"9:40"
-						"11:20"
-						"14:15"
-						"test"
-					]
-				}
+				"date"="2022:7:30"
+				"start"[
+					"345-524"
+					"638-894"
+					"943-1230"
+				]
 			}
 			"violin"{
-				"time"="45"
-				"timeMarginEnd"="6"
-				"start"="900"
-			}
-			"pickle"{
-				"time"="80"
-				"start"="1020"
-				"date"="2022:7:3"
-			}
-			"softBoundsDiscovery"{
-				"after"="block"
-				"date"="2022:7:4"
-			}
-			"block"{
-				"date"="2022:7:4"
-				"start"="830"
-			}
-			"intrusiveBoundedElement"{
-				"date"="2022:7:4"
-				"start"="1000"
+				"time"="47"
+				"date"="2022:7:30"
+				"start"[
+					"238-439"
+					"749-930"
+					"1303-1430"
+				]
 			}
 		}
 		"Schedule"{
-			"2022:7:23"{
+			"2022:7:29"{
 			}
-			"2022:7:24"{
+			"2022:7:30"{
 			}
-			"2022:7:25"{
-			}
-			"2022:7:26"{
+			"2022:7:31"{
 			}
 		}
 	}
